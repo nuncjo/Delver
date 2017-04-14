@@ -6,6 +6,7 @@ from .exceptions import HistoryError
 
 
 def with_history(func):
+    """Ensures that history is set to true for methods that require history"""
 
     @wraps(func)
     def wrapper(*args, **kwargs):
