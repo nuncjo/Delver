@@ -68,3 +68,7 @@ def match_form(wrapped_form, filters):
         elif getattr(wrapped_form, name)() != value:
             return False
     return True
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
