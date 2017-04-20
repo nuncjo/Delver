@@ -17,10 +17,10 @@ def match_link(data, filters, match='EQUAL'):
     :param match: string
     :return: bool
     """
-    return match_dict(data, filters, match)
+    return match_dict(data, filters, match=match)
 
 
-def match_dict(data, filters, match):
+def match_dict(data, filters, match='EQUAL'):
     """Matches filters values with data values using predefined matching types
 
     :param data: dict

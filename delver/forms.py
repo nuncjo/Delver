@@ -1,4 +1,4 @@
-# -*- coding:utf-8 -*-
+# -*- coding: utf-8 -*-
 
 from urllib.parse import urljoin
 
@@ -77,7 +77,7 @@ class FormWrapper:
     def __init__(self, lxml_form, session=None, url=None):
         """FormWrapper initialization
 
-        :param lxml_form: class::`FormElement' object
+        :param lxml_form: class::`FormElement <FormElement>` object
         :param session: session object required only if we want to submit form
         :param url: current base url used to assemble full action url
         """
@@ -185,3 +185,7 @@ class FormWrapper:
             if hasattr(extra_values, 'items'):
                 extra_values = extra_values.items()
             values.extend(extra_values)
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
