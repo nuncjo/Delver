@@ -118,13 +118,13 @@ class ProxyPool:
         return WorkingProxyList(proxies=self._proxies)
 
     def __iter__(self):
-        return iter(self._proxies)
+        return self._proxies.__iter__()
 
     def __len__(self):
         return len(self._proxies)
 
-    def add(self, test=False):
-        raise NotImplemented
+    def __getitem__(self, item):
+        return self._proxies[item]
 
     def load_proxy(self, address, test=False):
         """ Makes <Proxy> object from ip address.
