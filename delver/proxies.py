@@ -27,6 +27,20 @@ class Proxy:
         self._timeout = timeout or 15
         self._errors = 0
 
+    @property
+    def timeout(self):
+        """ Property attribute, for managing from ProxyPool purposes.
+
+        :return: int
+        """
+        return self._timeout
+
+    @timeout.setter
+    def timeout(self, value):
+        if not isinstance(value, int):
+            raise TypeError("Expected int")
+        self._timeout = value
+
     def test(self):
         """ Test if proxy works.
 
