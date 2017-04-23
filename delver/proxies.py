@@ -98,6 +98,14 @@ class ProxyPool:
         self._executor = ThreadPoolExecutor(max_workers=workers)
         self._loop = None
 
+    def __getattr__(self, name):
+        """Magically extends ProxyPool methods of list methods like append, insert, sort etc.
+
+        :param name: attribute name
+        :return: attribute of list
+        """
+        return getattr(self._proxies, name)
+
     def load_proxies(self, proxies, test=False):
         """ Loads proxies. Extends pool <Proxy> list.
 
