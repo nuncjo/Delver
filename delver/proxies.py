@@ -5,6 +5,8 @@ from concurrent.futures import ThreadPoolExecutor
 
 import requests
 
+from .helpers import ForcedInteger
+
 
 class Proxy:
     """Proxy object
@@ -12,6 +14,8 @@ class Proxy:
     Wraps proxy ip address like "110.136.228.250:80" to object. Provides testing methods.
 
     """
+    timeout = ForcedInteger('timeout')
+
     def __init__(self, proxy, _type=None, test_url=None, timeout=None):
         """Proxy initialization
 
@@ -26,20 +30,6 @@ class Proxy:
         self._test_url = test_url or 'https://httpbin.org/ip'
         self._timeout = timeout or 15
         self._errors = 0
-
-    @property
-    def timeout(self):
-        """ Property attribute, for managing from ProxyPool purposes.
-
-        :return: int
-        """
-        return self._timeout
-
-    @timeout.setter
-    def timeout(self, value):
-        if not isinstance(value, int):
-            raise TypeError("Expected int")
-        self._timeout = value
 
     def test(self):
         """ Test if proxy works.
