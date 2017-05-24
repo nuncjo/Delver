@@ -10,6 +10,11 @@ from .decorators import with_history
 from .exceptions import CrawlerError
 from .parser import HtmlParser
 from .scraper import Scraper
+from .descriptors import (
+    Useragent,
+    Proxy,
+    Headers
+)
 
 PARSERS = {
     'text/html': HtmlParser,
@@ -35,6 +40,11 @@ class Crawler(Scraper):
     200
 
     """
+
+    useragent = Useragent()
+    proxy = Proxy()
+    headers = Headers()
+
     def __init__(self, history=True, max_history=5, absolute_links=False):
         """Crawler initialization
 
@@ -177,43 +187,6 @@ class Crawler(Scraper):
         :return: `RequestsCookieJar` object
         """
         return self._current_response.cookies
-
-    @property
-    def useragent(self):
-        return self._useragent
-
-    @useragent.setter
-    def useragent(self, value):
-        """Sets useragent. Useragent set in that way is used for all crawler requests
-        unless it is overridden in request kwargs or changed.
-        """
-        self._useragent = value
-        self._headers['user-agent'] = value
-
-    @property
-    def proxy(self):
-        return self._proxy
-
-    @proxy.setter
-    def proxy(self, value):
-        """Sets proxy. Proxy set in that way is used for all crawler requests
-        unless it is overridden in request kwargs or changed.
-        """
-        self._proxy = {
-            'http': f'http://{value}',
-            'https': f'https://{value}'
-        }
-
-    @property
-    def headers(self):
-        return self._headers
-
-    @headers.setter
-    def headers(self, value):
-        """Sets headers. Headers set in that way are used for all crawler requests
-        unless it is overridden in request kwargs or changed.
-        """
-        self._headers = value
 
     def current_parser(self):
         """Return parser associated with current flow item.
