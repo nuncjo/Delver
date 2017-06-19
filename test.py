@@ -12,6 +12,7 @@ class TestAll(unittest.TestCase):
     def setUp(self):
         self.urls = {
             'SIMPLE_HTML': 'https://httpbin.org/html',
+            'SIMPLE_TABLE': 'https://www.w3schools.com/html/html_tables.asp',
             'USER_AGENT': 'https://httpbin.org/user-agent',
             'COMPLEX_HTML': 'https://www.nytimes.com/',
             'FORM': 'https://httpbin.org/forms/post',
@@ -113,6 +114,13 @@ class TestAll(unittest.TestCase):
         c.open(self.urls['SIMPLE_HTML'])
         p_text = c.css('div')
         self.assertGreaterEqual(len(p_text), 1)
+
+    def test_crawler_scraper_methods(self):
+        c = Crawler()
+        c.open(self.urls['SIMPLE_TABLE'])
+        self.assertTrue(c.tables())
+        self.assertTrue(c.title())
+        self.assertTrue(c.images())
 
     def test_crawler_back_forward_navigation(self):
         c = Crawler(absolute_links=True)

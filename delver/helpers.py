@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from collections import defaultdict
+
 
 MATCHINGS = {
     'IN': lambda value1, value2: value1 in value2,
@@ -68,6 +70,31 @@ def match_form(wrapped_form, filters):
         elif getattr(wrapped_form, name)() != value:
             return False
     return True
+
+
+def table_to_dict(table):
+    """Turns lxml //table element to dict. Works only with simple flat tables.
+
+    :param table: lxml `<Element>` object
+    :return: defaultdict
+    """
+    def process_row():
+        for subindex, row_child in enumerate(child.iterchildren()):
+            if row_child.tag == 'th':
+                headers.append(row_child.text_content())
+            elif row_child.tag == 'td' and headers:
+                table_dict[index].update({
+                    headers[subindex]: row_child.text_content()
+                })
+            elif not headers:
+                return {}
+
+    headers = []
+    table_dict = defaultdict(dict)
+    for index, child in enumerate(table.iterchildren()):
+        if child.tag == 'tr':
+            process_row()
+    return table_dict
 
 
 def typed_property(name, expected_type):

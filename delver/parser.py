@@ -25,7 +25,7 @@ class HtmlParser:
     def make_links_absolute(self):
         parsed_url = urlparse(self._url)
         self._html_tree.make_links_absolute(
-            '{url.scheme}://{url.netloc}/'.format(uri=parsed_url),
+            '{url.scheme}://{url.netloc}/'.format(url=parsed_url),
             resolve_base_href=True
         )
 

@@ -15,3 +15,7 @@ class HistoryError(GeneralError):
 
 class FlowError(GeneralError):
     """Raised on errors related to flow usage."""
+
+
+class CrawlerError(GeneralError):
+    """Raised on errors related to crawler usage."""
