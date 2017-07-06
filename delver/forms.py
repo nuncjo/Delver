@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import io
+
 from urllib.parse import urljoin
 
 from lxml.html import (
@@ -83,6 +85,7 @@ class FormWrapper:
         """
         self._lxml_form = lxml_form
         self._fields = {}
+        self._files = {}
         self._session = session
         self._result = None
         self._url = url or None
@@ -104,7 +107,14 @@ class FormWrapper:
         :param values: dict with form
         :return:
         """
-        self._lxml_form.fields = values
+        text_values = {}
+        for name, val in values.items():
+            if isinstance(val, io.IOBase):
+                self._files[name] = val
+            else:
+                text_values[name] = val
+
+        self._lxml_form.fields = text_values
 
     def id(self):
         """Returns form id attribute
@@ -171,7 +181,12 @@ class FormWrapper:
         action = custom_action or self.action_url()
         values = self.form_values()
         self.append_extra_values(values, extra_values)
-        self._result = self._session.request(self.method, action, data=values)
+        self._result = self._session.request(
+            self.method,
+            action,
+            data=values,
+            files=self._files
+        )
         return self._result
 
     def append_extra_values(self, values, extra_values):

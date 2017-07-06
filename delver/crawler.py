@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import asyncio
+import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from collections import namedtuple, deque
 from copy import deepcopy
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 import requests
 
@@ -63,6 +67,8 @@ class Crawler(Scraper):
         self._useragent = None
         self._headers = {}
         self._proxy = {}
+        self._loop = None
+        self._executor = None
 
     def fit_parser(self, response):
         """Fits parser according to response type.
@@ -103,6 +109,35 @@ class Crawler(Scraper):
             if self._history:
                 self._flow[self._index].update({'response': deepcopy(self._current_response)})
             return self._current_response
+
+    def submit(self, url=None, data=None):
+        """Direct submit. Used when quick post to form is needed or if there are no forms found by the parser.
+
+        :param url: submit url, form action url, str
+        :param data: submit parameters, dict
+        :return: class::`Response <Response>` object
+
+        Usage::
+
+        >>> c = Crawler()
+        >>> c.submit(
+        ...    url=self.urls['POST'],
+        ...    data={
+        ...        'name': 'Piccolo'
+        ...    }
+        ...)
+        >>> response.status_code
+        200
+
+        """
+        current_url = None
+        if self._current_response:
+            current_url = self._current_response.url
+        return self.open(
+            url or current_url,
+            method='post',
+            data=data or {}
+        )
 
     def add_customized_kwargs(self, kwargs):
         """Adds request keyword arguments customized by setting `Crawler`
@@ -214,3 +249,30 @@ class Crawler(Scraper):
 
     def encoding(self):
         return self._flow[self._index].encoding
+
+    def download(self, local_path, url, name=None):
+        file_name = name or os.path.split(urlparse(url).path)[-1]
+        if file_name:
+            download_path = os.path.join(local_path, file_name)
+            with open(download_path, 'wb') as f:
+                f.write(self._session.get(url).content)
+            return download_path
+
+    def download_files(self, local_path, files=None, workers=10):
+        """Download list of images in parallel.
+
+        :param workers: number of threads
+        :param local_path:
+        :param files: list of files
+        :return:
+        """
+        files = files or []
+        results = []
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            for future in as_completed(
+                    executor.submit(self.download, local_path, file)
+                    for file in files
+            ):
+                results.append(future.result())
+
+        return results

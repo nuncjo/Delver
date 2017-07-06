@@ -2,6 +2,7 @@
 
 from collections import defaultdict
 
+__all__ = ['match_link', 'match_dict', 'match_form', 'table_to_dict', 'typed_property', 'download']
 
 MATCHINGS = {
     'IN': lambda value1, value2: value1 in value2,
