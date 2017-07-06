@@ -1,6 +1,9 @@
 # -*- coding:utf-8 -*-
 
+import os
+import shutil
 import unittest
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
 from delver.crawler import Crawler
 from delver.exceptions import CrawlerError
@@ -14,12 +17,15 @@ class TestAll(unittest.TestCase):
             'SIMPLE_HTML': 'https://httpbin.org/html',
             'SIMPLE_TABLE': 'https://www.w3schools.com/html/html_tables.asp',
             'USER_AGENT': 'https://httpbin.org/user-agent',
+            'POST': 'https://httpbin.org/post',
             'COMPLEX_HTML': 'https://www.nytimes.com/',
             'FORM': 'https://httpbin.org/forms/post',
             'FORM2': 'https://eoryginalne.pl/kontakt',
             'GOOGLE': 'https://www.google.pl/',
             'LINKS': 'https://httpbin.org/links/10/0',
             'ROBOTS': 'https://httpbin.org/robots.txt',
+            'IMAGE': 'https://httpbin.org/image/png',
+            'FILE_UPLOAD': 'http://cgi-lib.berkeley.edu/ex/fup.html',
             'XML': 'https://httpbin.org/xml',
             'REDIRECT': 'https://httpbin.org/redirect/1',
             'REDIRECT_2_TIMES': 'https://httpbin.org/redirect/2',
@@ -29,8 +35,30 @@ class TestAll(unittest.TestCase):
             'REST': 'https://jsonplaceholder.typicode.com/posts',
             'SCRAPING_QUOTES': 'http://quotes.toscrape.com/',
             'SCRAPING_BOOKSTORE': 'http://books.toscrape.com/',
-            'GAZETA': 'http://www.gazeta.pl/0,0.html'
+            'GAZETA': 'http://www.gazeta.pl/0,0.html',
+            'XKCD': 'https://xkcd.com/'
         }
+        self.urls_list = [
+            "https://www.nytimes.com/",
+            "http://www.alexa.com/",
+            "https://www.mozilla.org/en-US/",
+            "https://www.amazon.com/",
+            "https://www.walmart.com/",
+            "http://www.biedronka.pl/pl",
+            "https://pl.aliexpress.com/",
+            "https://allegro.pl/",
+            "https://httpbin.org/html",
+            "https://github.com/"
+        ]
+        self.test_dir = os.path.join(os.getcwd(), 'test')
+        self.upload_file = os.path.join(self.test_dir, 'upload.txt')
+        os.makedirs(self.test_dir, exist_ok=True)
+
+        with open(self.upload_file, 'wb') as f:
+            f.write(b"If the road is easy, you're likely going the wrong way..")
+
+    def tearDown(self):
+        shutil.rmtree(self.test_dir, ignore_errors=True)
 
     def test_simple_http_page(self):
         c = Crawler()
@@ -80,7 +108,7 @@ class TestAll(unittest.TestCase):
         forms[0].submit(extra_values={'extra_value': "I am your father."})
         success = forms[0].check(
             phrase="I am your father.",
-            url='https://httpbin.org/post',
+            url=self.urls['POST'],
             status_codes=[200])
         self.assertEqual(success, True)
 
@@ -154,9 +182,6 @@ class TestAll(unittest.TestCase):
         c.cookies['fake_cookie'] = 'dsf2r2dfsd32r32rrfsdfds'
         self.assertEqual(cookies_len+1, len(c.cookies))
 
-    def test_crawler_proxy_set(self):
-        pass
-
     def test_crawler_useragent_set(self):
         c = Crawler()
         c.useragent = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
@@ -170,39 +195,97 @@ class TestAll(unittest.TestCase):
         json_response = c.open(self.urls['USER_AGENT'], headers={'user-agent': one_time_useragent}).json()
         self.assertEqual(one_time_useragent, json_response['user-agent'])
 
-    def test_crawler_safe_mode(self):
-        """Mode respecting robots.txt and timeouts before requests"""
-        pass
+    def test_download_file(self):
+        c = Crawler()
+        file_name = 'test.png'
+        c.download(
+            self.urls['USER_AGENT'],
+            self.test_dir,
+            name=file_name
+        )
+        self.assertTrue(os.path.isfile(os.path.join(self.test_dir, file_name)))
 
-    def test_crawler_post_back_reload_post(self):
-        """Posting form, back and post again"""
-        pass
+    def test_download_images_list(self):
+        """ Download list of images in parallel.
+        """
+        c = Crawler()
+        c.open(self.urls['XKCD'])
+        full_images_urls = [c.join_url(src) for src in c.images()]
+        downloaded_files = c.download_files(self.test_dir, files=full_images_urls)
+        self.assertEqual(len(full_images_urls), len(downloaded_files))
 
     def test_form_file_upload(self):
         """Uploading a file through """
-        pass
-
-    def test_crawler_file_download(self):
-        """Uploading a file through """
-        pass
+        c = Crawler()
+        c.open(self.urls['FILE_UPLOAD'])
+        forms = c.forms()
+        forms[0].fields = {
+            'note': 'Towel cat picture',
+            'upfile': open(self.upload_file, 'r')
+        }
+        forms[0].submit()
+        success = forms[0].check(
+            phrase="road is easy",
+            status_codes=[200])
+        self.assertTrue(success)
 
     def test_proxy_pool(self):
         proxies = [
-            "110.136.228.250:80",
-            "166.78.156.247:80",
-            "173.234.216.40:21320",
-            "178.45.192.153:80",
-            "202.181.103.212:80",
-            "216.150.41.16:8888",
-            "31.193.223.87:80",
-            "42.121.18.43:8080",
-            "88.85.240.60:8080",
-            "94.180.156.203:3128"
+            "117.143.109.159:80",
+            "117.143.109.163:80",
+            "162.243.108.161:3128",
+            "195.14.242.39:80",
+            "202.57.129.228:8080",
+            "212.124.171.144:80",
+            "216.249.79.140:21320",
+            "220.130.34.177:80"
+            "52.10.247.166:80",
+            "77.51.16.170:80",
         ]
         proxy_pool = ProxyPool()
-        proxy_pool.load_proxies(proxies, test=False)
+        proxy_pool.load_proxies(proxies, test=True)
         working = proxy_pool.working()
         self.assertEqual(len(proxies), len(proxy_pool))
+
+    def test_run_crawler_in_threads(self):
+        c = Crawler()
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            results = executor.map(c.open, self.urls_list)
+        self.assertEqual(len(list(results)), 10)
+
+    def test_run_crawler_in_processes(self):
+        c = Crawler()
+        with ProcessPoolExecutor(max_workers=4) as executor:
+            results = executor.map(c.open, self.urls_list)
+        self.assertEqual(len(list(results)), 10)
+
+    def test_run_crawler_in_threads_download_images(self):
+
+        def open_and_download(url):
+            response = c.open(url)
+            full_images_urls = [c.join_url(src) for src in c.images()]
+            downloaded_files = c.download_files(self.test_dir, files=full_images_urls)
+            self.assertEqual(len(full_images_urls), len(downloaded_files))
+            return response
+
+        c = Crawler()
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            results = executor.map(open_and_download, self.urls_list)
+
+        self.assertEqual(len(list(results)), 10)
+
+    def test_crawler_custom_submit(self):
+        c = Crawler()
+        data = {
+            'name': 'Luciano Ramalho',
+            'title': 'Fluent Python'
+        }
+        c.submit(
+            url=self.urls['POST'],
+            data=data
+        )
+        result = c.response().json()
+        self.assertEqual(result.get('form'), data)
 
 
 if __name__ == '__main__':
