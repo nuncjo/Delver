@@ -199,8 +199,8 @@ class TestAll(unittest.TestCase):
         c = Crawler()
         file_name = 'test.png'
         c.download(
-            self.urls['USER_AGENT'],
             self.test_dir,
+            self.urls['USER_AGENT'],
             name=file_name
         )
         self.assertTrue(os.path.isfile(os.path.join(self.test_dir, file_name)))
@@ -243,7 +243,7 @@ class TestAll(unittest.TestCase):
             "77.51.16.170:80",
         ]
         proxy_pool = ProxyPool()
-        proxy_pool.load_proxies(proxies, test=True)
+        proxy_pool.load_proxies(proxies, test=False)
         working = proxy_pool.working()
         self.assertEqual(len(proxies), len(proxy_pool))
 
