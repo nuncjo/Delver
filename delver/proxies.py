@@ -5,7 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import requests
 
-from .helpers import ForcedInteger
+from helpers import ForcedInteger
 
 
 class Proxy:

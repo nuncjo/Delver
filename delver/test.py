@@ -5,9 +5,9 @@ import shutil
 import unittest
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
-from delver.crawler import Crawler
-from delver.exceptions import CrawlerError
-from delver.proxies import ProxyPool
+from crawler import Crawler
+from exceptions import CrawlerError
+from proxies import ProxyPool
 
 
 class TestAll(unittest.TestCase):
@@ -192,7 +192,10 @@ class TestAll(unittest.TestCase):
         c = Crawler()
         c.useragent = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
         one_time_useragent = 'Godzilla'
-        json_response = c.open(self.urls['USER_AGENT'], headers={'user-agent': one_time_useragent}).json()
+        json_response = c.open(
+            self.urls['USER_AGENT'],
+            headers={'user-agent': one_time_useragent}
+        ).json()
         self.assertEqual(one_time_useragent, json_response['user-agent'])
 
     def test_download_file(self):
@@ -245,7 +248,9 @@ class TestAll(unittest.TestCase):
         proxy_pool = ProxyPool()
         proxy_pool.load_proxies(proxies, test=False)
         working = proxy_pool.working()
-        self.assertEqual(len(proxies), len(proxy_pool))
+        proxy_pool_len = len(proxy_pool)
+        self.assertEqual(len(proxies), proxy_pool_len)
+        self.assertEqual(len(working), proxy_pool_len)
 
     def test_run_crawler_in_threads(self):
         c = Crawler()
@@ -284,8 +289,7 @@ class TestAll(unittest.TestCase):
             url=self.urls['POST'],
             data=data
         )
-        result = c.response().json()
-        self.assertEqual(result.get('form'), data)
+        self.assertEqual(c.response().json().get('form'), data)
 
 
 if __name__ == '__main__':

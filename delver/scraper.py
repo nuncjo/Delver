@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .helpers import table_to_dict
+from helpers import table_to_dict
 
 
 class Scraper:

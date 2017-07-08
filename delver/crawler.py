@@ -9,11 +9,11 @@ from urllib.parse import urljoin, urlparse
 
 import requests
 
-from .decorators import with_history
-from .exceptions import CrawlerError
-from .parser import HtmlParser
-from .scraper import Scraper
-from .descriptors import (
+from decorators import with_history
+from exceptions import CrawlerError
+from parser import HtmlParser
+from scraper import Scraper
+from descriptors import (
     Useragent,
     Proxy,
     Headers
@@ -120,14 +120,10 @@ class Crawler(Scraper):
 
         Usage::
 
+        >>> data={'name': 'Piccolo'}
         >>> c = Crawler()
-        >>> c.submit(
-        ...    url=self.urls['POST'],
-        ...    data={
-        ...        'name': 'Piccolo'
-        ...    }
-        ...)
-        >>> response.status_code
+        >>> result = c.submit('https://httpbin.org/post', data=data)
+        >>> result.status_code
         200
 
         """
@@ -151,6 +147,7 @@ class Crawler(Scraper):
             kwargs.update({'headers': self._headers})
 
     def response(self):
+        """Get current response."""
         return self._current_response
 
     def get_url(self):
@@ -193,6 +190,7 @@ class Crawler(Scraper):
         return self._flow
 
     def clear(self):
+        """Clears all flow, session, headers etc."""
         self._flow.clear()
         self._index = 0
         self._session.cookies.clear()
@@ -233,16 +231,46 @@ class Crawler(Scraper):
         return self._flow[self._index]['parser']
 
     def links(self, tags=None, filters=None, match='EQUAL'):
+        """Find all links on current page using given criteria
+
+        usage::
+
+        >>> c = Crawler()
+        >>> c.open('https://httpbin.org/links/10/0')
+        <Response [200]>
+        >>> links = c.links(
+        ...     tags = ('style', 'link', 'script', 'a'),
+        ...     filters = {
+        ...         'text': '7'
+        ...     },
+        ...     match='NOT_EQUAL'
+        ... )
+        >>> len(links)
+        8
+
+        :param tags: allowed html tags (like 'style', 'link', 'script', 'a')
+        :param filters: dictionary of filters, possible values: id, text, title, class
+        :param match: type of matching, possible values: 'IN', 'NOT_IN', 'EQUAL', 'NOT_EQUAL'
+        :return:
+        """
         return self.current_parser().find_links(tags, filters, match)
 
     def forms(self, filters=None):
         """Return iterable over forms. Doesn't find javascript forms yet (but will be).
         >>> c = Crawler()
         >>> response = c.open('https://httpbin.org/forms/post')
-        >>> forms = c.forms(filters={'id': 'searchbox'})
-        >>> forms[1].fields = {'from': 'test@xxx.com'}
-        >>> forms[1].fields['from']
-        'test@xxx.com'
+        >>> forms = c.forms()
+        >>> forms[0].fields = {
+        ...    'custname': 'Ruben Rybnik',
+        ...    'delivery': '',
+        ...    'custemail': 'test@email.com',
+        ...    'comments': '',
+        ...    'size': 'medium',
+        ...    'topping': ['bacon', 'cheese'],
+        ...    'custtel': '+48606505888'
+        ... }
+        >>> forms[0].fields['custname']['value']
+        'Ruben Rybnik'
         """
         filters = filters or {}
         if self._history:
@@ -250,6 +278,7 @@ class Crawler(Scraper):
         return self._parser.find_forms(filters)
 
     def encoding(self):
+        """Returns current respose encoding."""
         return self._flow[self._index].encoding
 
     def download(self, local_path, url, name=None):
@@ -261,12 +290,12 @@ class Crawler(Scraper):
             return download_path
 
     def download_files(self, local_path, files=None, workers=10):
-        """Download list of images in parallel.
+        """Download list of files in parallel.
 
         :param workers: number of threads
-        :param local_path:
+        :param local_path: download path
         :param files: list of files
-        :return:
+        :return: list with downloaded files paths
         """
         files = files or []
         results = []
@@ -278,3 +307,9 @@ class Crawler(Scraper):
                 results.append(future.result())
 
         return results
+
+
+if __name__ == '__main__':
+    import doctest
+
+    doctest.testmod()
