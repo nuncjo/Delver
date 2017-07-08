@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import asyncio
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -83,7 +82,8 @@ class Crawler(Scraper):
                 return self._parser
         raise CrawlerError(f"Couldn't fit parser for {content_type}.")
 
-    def setup(self):
+    def handle_response(self):
+        """Called after request. Make operations accordng to attributes settings."""
         if self._absolute_links:
             self._parser.make_links_absolute()
         if self._history:
@@ -105,13 +105,14 @@ class Crawler(Scraper):
         self._current_response = self._session.request(method, url, **kwargs)
 
         if self.fit_parser(self._current_response):
-            self.setup()
+            self.handle_response()
             if self._history:
                 self._flow[self._index].update({'response': deepcopy(self._current_response)})
             return self._current_response
 
     def submit(self, url=None, data=None):
-        """Direct submit. Used when quick post to form is needed or if there are no forms found by the parser.
+        """Direct submit. Used when quick post to form is needed or if there are no forms found
+        by the parser.
 
         :param url: submit url, form action url, str
         :param data: submit parameters, dict
@@ -212,7 +213,8 @@ class Crawler(Scraper):
         ]
 
     def request_history(self):
-        """Returns current request history (like list of redirects to finally accomplish request)"""
+        """Returns current request history (like list of redirects to finally accomplish request)
+        """
         return self._current_response.history
 
     @property

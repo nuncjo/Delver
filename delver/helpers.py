@@ -2,7 +2,7 @@
 
 from collections import defaultdict
 
-__all__ = ['match_link', 'match_dict', 'match_form', 'table_to_dict', 'typed_property', 'download']
+__all__ = ['match_link', 'match_dict', 'match_form', 'table_to_dict']
 
 MATCHINGS = {
     'IN': lambda value1, value2: value1 in value2,
@@ -79,6 +79,7 @@ def table_to_dict(table):
     :param table: lxml `<Element>` object
     :return: defaultdict
     """
+
     def process_row():
         for subindex, row_child in enumerate(child.iterchildren()):
             if row_child.tag == 'th':
@@ -119,11 +120,17 @@ def typed_property(name, expected_type):
 
     return prop
 
+
+def custom_property(name, type):
+    return typed_property(name, type)
+
+
+# TODO: is it really needed ?
 ForcedInteger = lambda name: typed_property(name, int)
 ForcedString = lambda name: typed_property(name, str)
 ForcedFloat = lambda name: typed_property(name, float)
 
-
 if __name__ == '__main__':
     import doctest
+
     doctest.testmod()

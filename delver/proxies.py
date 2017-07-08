@@ -167,6 +167,7 @@ class WorkingProxyList(ProxyList):
     def __iter__(self):
         return (proxy for proxy in self._proxies if proxy.working)
 
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
