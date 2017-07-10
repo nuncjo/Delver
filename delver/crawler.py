@@ -37,10 +37,10 @@ class Crawler(Scraper):
 
     Usage::
 
-    >>> c = Crawler(history=True)
-    >>> response = c.open('https://httpbin.org/html')
-    >>> response.status_code
-    200
+        >>> c = Crawler(history=True)
+        >>> response = c.open('https://httpbin.org/html')
+        >>> response.status_code
+        200
 
     """
 
@@ -80,7 +80,7 @@ class Crawler(Scraper):
             if _type in content_type:
                 self._parser = PARSERS[_type](response, session=self._session)
                 return self._parser
-        raise CrawlerError(f"Couldn't fit parser for {content_type}.")
+        raise CrawlerError("Couldn't fit parser for {}.".format(content_type))
 
     def handle_response(self):
         """Called after request. Make operations accordng to attributes settings."""
@@ -120,11 +120,11 @@ class Crawler(Scraper):
 
         Usage::
 
-        >>> data={'name': 'Piccolo'}
-        >>> c = Crawler()
-        >>> result = c.submit('https://httpbin.org/post', data=data)
-        >>> result.status_code
-        200
+            >>> data={'name': 'Piccolo'}
+            >>> c = Crawler()
+            >>> result = c.submit('https://httpbin.org/post', data=data)
+            >>> result.status_code
+            200
 
         """
         current_url = None
@@ -233,20 +233,20 @@ class Crawler(Scraper):
     def links(self, tags=None, filters=None, match='EQUAL'):
         """Find all links on current page using given criteria
 
-        usage::
+        Usage::
 
-        >>> c = Crawler()
-        >>> c.open('https://httpbin.org/links/10/0')
-        <Response [200]>
-        >>> links = c.links(
-        ...     tags = ('style', 'link', 'script', 'a'),
-        ...     filters = {
-        ...         'text': '7'
-        ...     },
-        ...     match='NOT_EQUAL'
-        ... )
-        >>> len(links)
-        8
+            >>> c = Crawler()
+            >>> c.open('https://httpbin.org/links/10/0')
+            <Response [200]>
+            >>> links = c.links(
+            ...     tags = ('style', 'link', 'script', 'a'),
+            ...     filters = {
+            ...         'text': '7'
+            ...     },
+            ...     match='NOT_EQUAL'
+            ... )
+            >>> len(links)
+            8
 
         :param tags: allowed html tags (like 'style', 'link', 'script', 'a')
         :param filters: dictionary of filters, possible values: id, text, title, class

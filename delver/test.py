@@ -247,7 +247,7 @@ class TestAll(unittest.TestCase):
         ]
         proxy_pool = ProxyPool()
         proxy_pool.load_proxies(proxies, test=False)
-        working = proxy_pool.working()
+        working = list(proxy_pool.working())
         proxy_pool_len = len(proxy_pool)
         self.assertEqual(len(proxies), proxy_pool_len)
         self.assertEqual(len(working), proxy_pool_len)
