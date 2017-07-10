@@ -9,8 +9,10 @@ from delver import (
     proxies
 )
 
-doctest.testmod(crawler)
-doctest.testmod(forms)
-doctest.testmod(helpers)
-doctest.testmod(parser)
-doctest.testmod(proxies)
+
+if __name__ == "__main__":
+    doctest.testmod(crawler)
+    doctest.testmod(forms)
+    doctest.testmod(helpers)
+    doctest.testmod(parser)
+    doctest.testmod(proxies)
