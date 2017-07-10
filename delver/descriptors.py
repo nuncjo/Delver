@@ -24,8 +24,8 @@ class Proxy:
         unless it is overridden in request kwargs or changed.
         """
         instance.__dict__['_proxy'] = {
-            'http': f'http://{value}',
-            'https': f'https://{value}'
+            'http': 'http://{}'.format(value),
+            'https': 'https://{}'.format(value)
         }
 
 
