@@ -2,7 +2,7 @@
 
 from functools import wraps
 
-from exceptions import HistoryError
+from .exceptions import HistoryError
 
 
 def with_history(func):

@@ -5,9 +5,9 @@ import shutil
 import unittest
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
-from crawler import Crawler
-from exceptions import CrawlerError
-from proxies import ProxyPool
+from .crawler import Crawler
+from .exceptions import CrawlerError
+from .proxies import ProxyPool
 
 
 class TestAll(unittest.TestCase):

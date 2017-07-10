@@ -5,8 +5,8 @@ from urllib.parse import urlparse
 from lxml import html
 from lxml.html.clean import Cleaner
 
-from forms import FormWrapper
-from helpers import (
+from .forms import FormWrapper
+from .helpers import (
     match_form,
     match_link
 )

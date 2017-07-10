@@ -9,11 +9,11 @@ from urllib.parse import urljoin, urlparse
 
 import requests
 
-from decorators import with_history
-from exceptions import CrawlerError
-from parser import HtmlParser
-from scraper import Scraper
-from descriptors import (
+from .decorators import with_history
+from .exceptions import CrawlerError
+from .parser import HtmlParser
+from .scraper import Scraper
+from .descriptors import (
     Useragent,
     Proxy,
     Headers
@@ -311,5 +311,4 @@ class Crawler(Scraper):
 
 if __name__ == '__main__':
     import doctest
-
     doctest.testmod()
