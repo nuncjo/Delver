@@ -36,7 +36,8 @@ class TestAll(unittest.TestCase):
             'SCRAPING_QUOTES': 'http://quotes.toscrape.com/',
             'SCRAPING_BOOKSTORE': 'http://books.toscrape.com/',
             'GAZETA': 'http://www.gazeta.pl/0,0.html',
-            'XKCD': 'https://xkcd.com/'
+            'XKCD': 'https://xkcd.com/',
+            'PYTHON': 'https://www.python.org/',
         }
         self.urls_list = [
             "https://www.nytimes.com/",
@@ -61,11 +62,6 @@ class TestAll(unittest.TestCase):
         shutil.rmtree(self.test_dir, ignore_errors=True)
 
     def test_simple_http_page(self):
-        c = Crawler()
-        response = c.open(self.urls['SIMPLE_HTML'])
-        self.assertEqual(response.status_code, 200)
-
-    def test_find_title(self):
         c = Crawler()
         response = c.open(self.urls['SIMPLE_HTML'])
         self.assertEqual(response.status_code, 200)
@@ -177,10 +173,12 @@ class TestAll(unittest.TestCase):
 
     def test_crawler_cookies_handling(self):
         c = Crawler()
-        c.open(self.urls['COMPLEX_HTML'])
-        cookies_len = len(c.cookies)
-        c.cookies['fake_cookie'] = 'dsf2r2dfsd32r32rrfsdfds'
-        self.assertEqual(cookies_len+1, len(c.cookies))
+        c.open(self.urls['COOKIES'], cookies={
+            'cookie_1': '1000101000101010',
+            'cookie_2': 'ABABHDBSBAJSLLWO',
+        })
+        response = c.response().json()
+        self.assertIn('cookie_1', response.get('cookies'), {})
 
     def test_crawler_useragent_set(self):
         c = Crawler()
@@ -203,7 +201,7 @@ class TestAll(unittest.TestCase):
         file_name = 'test.png'
         c.download(
             self.test_dir,
-            self.urls['USER_AGENT'],
+            self.urls['IMAGE'],
             name=file_name
         )
         self.assertTrue(os.path.isfile(os.path.join(self.test_dir, file_name)))

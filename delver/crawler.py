@@ -28,20 +28,153 @@ PARSERS = {
 
 
 class Crawler(Scraper):
-    """Browser mimicking object
+    """Browser mimicking object. Mostly wrapper on Requests and Lxml libraries.
+
+    :param history: (optional) bool, turns off/on history usage in Crawler
+    :param max_history: (optional) int, max items held in history
+    :param absolute_links: (optional) bool, makes always all links absolute
+
 
     Features:
+
     - To some extent, acts like a browser
+
     - Allows visiting pages, form posting, content scraping, cookie handling etc.
+
     - Wraps ``requests.Session()``
 
-    Usage::
 
-        >>> c = Crawler(history=True)
+    Simple usage::
+
+        >>> c = Crawler()
         >>> response = c.open('https://httpbin.org/html')
         >>> response.status_code
         200
 
+
+    Form submit::
+
+        >>> c = Crawler()
+        >>> response = c.open('https://httpbin.org/forms/post')
+        >>> forms = c.forms()
+
+        Filling up fields values:
+        >>> forms[0].fields = {
+        ...    'custname': 'Ruben Rybnik',
+        ...    'custemail': 'ruben.rybnik@fakemail.com',
+        ...    'size': 'medium',
+        ...    'topping': ['bacon', 'cheese'],
+        ...    'custtel': '+48606505888'
+        ... }
+        >>> submit_result = forms[0].submit()
+        >>> submit_result.status_code
+        200
+
+        Checking if form post ended with success:
+        >>> forms[0].check(
+        ...    phrase="Ruben Rybnik",
+        ...    url='https://httpbin.org/forms/post',
+        ...    status_codes=[200])
+        True
+
+
+    Form file upload::
+
+        >>> c = Crawler()
+        >>> c.open('http://cgi-lib.berkeley.edu/ex/fup.html')
+        <Response [200]>
+        >>> forms = c.forms()
+        >>> forms[0].fields = {
+        ...    'note': 'Text file with quote',
+        ...    'upfile': open('test/test_file.txt', 'r')
+        ... }
+        >>> forms[0].submit()
+        <Response [200]>
+        >>> forms[0].check(
+        ...    phrase="road is easy",
+        ...    status_codes=[200])
+        True
+
+    Cookies handling::
+
+        >>> c = Crawler()
+        >>> c.open('https://httpbin.org/cookies', cookies={
+        ...     'cookie_1': '1000101000101010',
+        ...     'cookie_2': 'ABABHDBSBAJSLLWO',
+        ... })
+        <Response [200]>
+
+    Find links::
+
+        >>> c = Crawler()
+        >>> c.open('https://httpbin.org/links/10/0')
+        <Response [200]>
+
+        Links can be filtered by some html tags and filters
+        like: id, text, title and class:
+        >>> links = c.links(
+        ...     tags = ('style', 'link', 'script', 'a'),
+        ...     filters = {
+        ...         'text': '7'
+        ...     },
+        ...     match='NOT_EQUAL'
+        ... )
+        >>> len(links)
+        8
+
+    Find images::
+
+        >>> c = Crawler(absolute_links=True)
+        >>> c.open('https://www.python.org/')
+        <Response [200]>
+
+        First image path with 'python-logo' in string:
+        >>> next(
+        ...     image_path for image_path in c.images()
+        ...     if 'python-logo' in image_path
+        ... )
+        'https://www.python.org/static/img/python-logo.png'
+
+    Download file::
+
+        >>> import os
+
+        >>> c = Crawler()
+        >>> local_file_path = c.download(
+        ...     local_path='test',
+        ...     url='https://httpbin.org/image/png',
+        ...     name='test.png'
+        ... )
+        >>> os.path.isfile(local_file_path)
+        True
+
+    Download files list in parallel::
+
+        >>> c = Crawler()
+        >>> c.open('https://xkcd.com/')
+        <Response [200]>
+        >>> full_images_urls = [c.join_url(src) for src in c.images()]
+        >>> downloaded_files = c.download_files('test', files=full_images_urls)
+        >>> len(full_images_urls) == len(downloaded_files)
+        True
+
+    Traversing through history::
+
+        >>> c = Crawler(absolute_links=True)
+        >>> c.open('http://quotes.toscrape.com/')
+        <Response [200]>
+        >>> tags_links = c.links(filters={'class': 'tag'})
+        >>> urls = list(tags_links.keys())
+        >>> c.follow(urls[0])
+        <Response [200]>
+        >>> c.follow(urls[1])
+        <Response [200]>
+        >>> c.follow(urls[2])
+        <Response [200]>
+        >>> history = c.history()
+        >>> c.back()
+        >>> c.get_url() == history[-2].url
+        True
     """
 
     useragent = Useragent()
@@ -114,18 +247,17 @@ class Crawler(Scraper):
         """Direct submit. Used when quick post to form is needed or if there are no forms found
         by the parser.
 
-        :param url: submit url, form action url, str
-        :param data: submit parameters, dict
-        :return: class::`Response <Response>` object
-
         Usage::
 
-            >>> data={'name': 'Piccolo'}
+            >>> data = {'name': 'Piccolo'}
             >>> c = Crawler()
             >>> result = c.submit('https://httpbin.org/post', data=data)
             >>> result.status_code
             200
 
+        :param url: submit url, form action url, str
+        :param data: submit parameters, dict
+        :return: class::`Response <Response>` object
         """
         current_url = None
         if self._current_response:
@@ -257,21 +389,16 @@ class Crawler(Scraper):
 
     def forms(self, filters=None):
         """Return iterable over forms. Doesn't find javascript forms yet (but will be).
-        >>> c = Crawler()
-        >>> response = c.open('https://httpbin.org/forms/post')
-        >>> forms = c.forms()
-        >>> forms[0].fields = {
-        ...    'custname': 'Ruben Rybnik',
-        ...    'delivery': '',
-        ...    'custemail': 'test@email.com',
-        ...    'comments': '',
-        ...    'size': 'medium',
-        ...    'topping': ['bacon', 'cheese'],
-        ...    'custtel': '+48606505888'
-        ... }
-        >>> forms[0].fields['custname']['value']
-        'Ruben Rybnik'
-        """
+
+        Usage::
+
+            >>> c = Crawler()
+            >>> response = c.open('http://cgi-lib.berkeley.edu/ex/fup.html')
+            >>> forms = c.forms()
+            >>> forms[0].fields['note'].get('tag')
+            'input'
+            """
+
         filters = filters or {}
         if self._history:
             return self.current_parser().find_forms(filters)
@@ -281,7 +408,7 @@ class Crawler(Scraper):
         """Returns current respose encoding."""
         return self._flow[self._index].encoding
 
-    def download(self, local_path, url, name=None):
+    def download(self, local_path=None, url=None, name=None):
         file_name = name or os.path.split(urlparse(url).path)[-1]
         if file_name:
             download_path = os.path.join(local_path, file_name)
