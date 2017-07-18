@@ -41,7 +41,7 @@ Example form submit:
         True
 
 
-Find links narowed by filters::
+Find links narowed by filters:
 ----------------
 
 .. code-block:: python
@@ -62,6 +62,7 @@ Find links narowed by filters::
         >>> len(links)
         8
 
+
 Download file::
 ----------------
 
@@ -78,6 +79,7 @@ Download file::
         >>> os.path.isfile(local_file_path)
         True
 
+
 Download files list in parallel::
 ----------------
 
@@ -91,6 +93,7 @@ Download files list in parallel::
         >>> len(full_images_urls) == len(downloaded_files)
         True
 
+
 Using xpath selectors::
 ----------------
 
@@ -99,6 +102,7 @@ Using xpath selectors::
         c = Crawler()
         c.open('https://httpbin.org/html')
         p_text = c.xpath('//p/text()')
+
 
 Using css selectors::
 ----------------
