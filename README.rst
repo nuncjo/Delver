@@ -3,7 +3,7 @@ Delver
 
 Programmatic web browser/crawler in Python. Alternative to Machanize, RoboBrowser, MechanicalSoup
 and others but with cleaner more pythonic and modern API. Projects like Mechanize were built on top on
-api taken from Perl language. Delver won't use BeautifulSoup but strict power of Request and Lxml.
+api taken from Perl language (not pythonic). Delver won't use BeautifulSoup but strict power of Request and Lxml.
 Delver will have much more features and methods usefull in scraping "out of the box".
 Lots of features are still in progress.
 
@@ -16,7 +16,7 @@ Example form submit:
 
 .. code-block:: python
 
-        >>> from delver import Crawler()
+        >>> from delver import Crawler
         >>> c = Crawler()
         >>> response = c.open('https://httpbin.org/forms/post')
         >>> forms = c.forms()
