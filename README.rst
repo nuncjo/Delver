@@ -21,7 +21,7 @@ Example form submit:
         >>> response = c.open('https://httpbin.org/forms/post')
         >>> forms = c.forms()
 
-        Filling up fields values:
+        # Filling up fields values:
         >>> forms[0].fields = {
         ...    'custname': 'Ruben Rybnik',
         ...    'custemail': 'ruben.rybnik@fakemail.com',
@@ -33,7 +33,7 @@ Example form submit:
         >>> submit_result.status_code
         200
 
-        Checking if form post ended with success:
+        # Checking if form post ended with success:
         >>> forms[0].check(
         ...    phrase="Ruben Rybnik",
         ...    url='https://httpbin.org/forms/post',
@@ -41,7 +41,7 @@ Example form submit:
         True
 
 
-Find links narowed by filters:
+Find links narrowed by filters:
 ----------------
 
 .. code-block:: python
@@ -50,8 +50,8 @@ Find links narowed by filters:
         >>> c.open('https://httpbin.org/links/10/0')
         <Response [200]>
 
-        Links can be filtered by some html tags and filters
-        like: id, text, title and class:
+        # Links can be filtered by some html tags and filters
+        # like: id, text, title and class:
         >>> links = c.links(
         ...     tags = ('style', 'link', 'script', 'a'),
         ...     filters = {
@@ -63,7 +63,7 @@ Find links narowed by filters:
         8
 
 
-Download file::
+Download file:
 ----------------
 
 .. code-block:: python
@@ -80,7 +80,7 @@ Download file::
         True
 
 
-Download files list in parallel::
+Download files list in parallel:
 ----------------
 
 .. code-block:: python
@@ -94,7 +94,7 @@ Download files list in parallel::
         True
 
 
-Using xpath selectors::
+Using xpath selectors:
 ----------------
 
 .. code-block:: python
@@ -104,7 +104,7 @@ Using xpath selectors::
         p_text = c.xpath('//p/text()')
 
 
-Using css selectors::
+Using css selectors:
 ----------------
 
 .. code-block:: python
