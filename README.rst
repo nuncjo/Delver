@@ -44,6 +44,8 @@ Example form submit:
 Find links narowed by filters::
 ----------------
 
+.. code-block:: python
+
         >>> c = Crawler()
         >>> c.open('https://httpbin.org/links/10/0')
         <Response [200]>
@@ -63,6 +65,8 @@ Find links narowed by filters::
 Download file::
 ----------------
 
+.. code-block:: python
+
         >>> import os
 
         >>> c = Crawler()
@@ -77,6 +81,8 @@ Download file::
 Download files list in parallel::
 ----------------
 
+.. code-block:: python
+
         >>> c = Crawler()
         >>> c.open('https://xkcd.com/')
         <Response [200]>
@@ -87,12 +93,18 @@ Download files list in parallel::
 
 Using xpath selectors::
 ----------------
+
+.. code-block:: python
+
         c = Crawler()
         c.open('https://httpbin.org/html')
         p_text = c.xpath('//p/text()')
 
 Using css selectors::
 ----------------
+
+.. code-block:: python
+
         c = Crawler()
         c.open('https://httpbin.org/html')
         p_text = c.css('div')
