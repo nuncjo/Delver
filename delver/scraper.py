@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .helpers import table_to_dict
+from .helpers import table_to_dict, filter_element
 
 
 class Scraper:
@@ -26,12 +26,30 @@ class Scraper:
         """
         return self._parser.xpath('//title/text()')
 
-    def images(self):
-        """ Scrapes images paths
+    def images(self, tags=None, filters=None, match='EQUAL'):
+        """ Scraping images using filtering
 
-        :return: list
+        :param tags: allowed html tags (like 'style', 'link', 'script', 'a')
+        :param filters: dictionary of filters, possible values: id, text, title, class
+        :param match: type of matching, possible values: 'IN', 'NOT_IN', 'EQUAL', 'NOT_EQUAL'
+        :return:
         """
-        return self._parser.xpath('//img/@src')
+        images = {}
+        filters = filters or {}
+        tags = tags or ['img']
+        for image in self._parser.xpath('//img'):
+            src = image.attrib.get('src')
+            if src:
+                matched = filter_element(
+                    image,
+                    tags=tags,
+                    filters=filters,
+                    match=match,
+                    custom_attrs=['alt', 'src']
+                )
+                if matched:
+                    images[src] = matched
+        return images
 
     def tables(self):
         """Scrapes tables to list of dicts. Works only with simple flat tables with <th> headers.

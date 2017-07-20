@@ -211,7 +211,7 @@ class TestAll(unittest.TestCase):
         """
         c = Crawler()
         c.open(self.urls['XKCD'])
-        full_images_urls = [c.join_url(src) for src in c.images()]
+        full_images_urls = [c.join_url(src) for src in c.images().keys()]
         downloaded_files = c.download_files(self.test_dir, files=full_images_urls)
         self.assertEqual(len(full_images_urls), len(downloaded_files))
 
@@ -266,7 +266,7 @@ class TestAll(unittest.TestCase):
 
         def open_and_download(url):
             response = c.open(url)
-            full_images_urls = [c.join_url(src) for src in c.images()]
+            full_images_urls = [c.join_url(src) for src in c.images().keys()]
             downloaded_files = c.download_files(self.test_dir, files=full_images_urls)
             self.assertEqual(len(full_images_urls), len(downloaded_files))
             return response

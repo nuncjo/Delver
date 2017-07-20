@@ -130,7 +130,7 @@ class Crawler(Scraper):
 
         First image path with 'python-logo' in string:
         >>> next(
-        ...     image_path for image_path in c.images()
+        ...     image_path for image_path in c.images().keys()
         ...     if 'python-logo' in image_path
         ... )
         'https://www.python.org/static/img/python-logo.png'
@@ -153,7 +153,7 @@ class Crawler(Scraper):
         >>> c = Crawler()
         >>> c.open('https://xkcd.com/')
         <Response [200]>
-        >>> full_images_urls = [c.join_url(src) for src in c.images()]
+        >>> full_images_urls = [c.join_url(src) for src in c.images().keys()]
         >>> downloaded_files = c.download_files('test', files=full_images_urls)
         >>> len(full_images_urls) == len(downloaded_files)
         True

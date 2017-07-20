@@ -2,7 +2,7 @@
 
 from collections import defaultdict
 
-__all__ = ['match_link', 'match_dict', 'match_form', 'table_to_dict']
+__all__ = ['match_form', 'table_to_dict', 'filter_element']
 
 MATCHINGS = {
     'IN': lambda value1, value2: value1 in value2,
@@ -12,15 +12,22 @@ MATCHINGS = {
 }
 
 
-def match_link(data, filters, match='EQUAL'):
-    """ Matches links with filters
+def filter_element(element, tags=None, filters=None, match='EQUAL', custom_attrs=None):
+    custom_attrs = custom_attrs or []
+    if element.tag in tags:
+        data = {
+            'id': element.attrib.get('id', ''),
+            'text': element.text,
+            'title': element.attrib.get('title', ''),
+            'class': element.attrib.get('class', '')
+        }
+        data.update({attr: element.attrib.get(attr, '') for attr in custom_attrs})
 
-    :param data: dict
-    :param filters: dict
-    :param match: string
-    :return: bool
-    """
-    return match_dict(data, filters, match=match)
+        if filters:
+            if match_dict(data, filters, match=match):
+                return data
+        else:
+            return data
 
 
 def match_dict(data, filters, match='EQUAL'):

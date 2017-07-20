@@ -8,7 +8,7 @@ from lxml.html.clean import Cleaner
 from .forms import FormWrapper
 from .helpers import (
     match_form,
-    match_link
+    filter_element
 )
 
 
@@ -49,19 +49,15 @@ class HtmlParser:
         """
         filters = filters or {}
         tags = tags or ['a']
-        for link, attribute, url, pos in self._html_tree.iterlinks():
-            if link.tag in tags:
-                link_data = {
-                    'id': link.attrib.get('id', ''),
-                    'text': link.text,
-                    'title': link.attrib.get('title', ''),
-                    'class': link.attrib.get('class', '')
-                }
-                if filters:
-                    if match_link(link_data, filters, match=match):
-                        self._links[url] = link_data
-                else:
-                    self._links[url] = link_data
+        for link, _, url, _ in self._html_tree.iterlinks():
+            matched = filter_element(
+                link,
+                tags=tags,
+                filters=filters,
+                match=match
+            )
+            if matched:
+                self._links[url] = matched
         return self._links
 
     def find_forms(self, filters=None):
