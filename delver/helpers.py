@@ -14,7 +14,7 @@ MATCHINGS = {
 
 def filter_element(element, tags=None, filters=None, match='EQUAL', custom_attrs=None):
     custom_attrs = custom_attrs or []
-    if element.tag in tags:
+    if not tags or element.tag in tags:
         data = {
             'id': element.attrib.get('id', ''),
             'text': element.text,

@@ -112,3 +112,13 @@ Using css selectors:
         c = Crawler()
         c.open('https://httpbin.org/html')
         p_text = c.css('div')
+
+
+Using xpath result with filters:
+----------------
+
+.. code-block:: python
+
+        c = Crawler()
+        c.open(self.urls['W3'])
+        filtered_results = c.xpath('//p').filter(filters={'class': 'w3-xlarge'})

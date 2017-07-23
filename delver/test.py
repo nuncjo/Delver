@@ -38,6 +38,7 @@ class TestAll(unittest.TestCase):
             'GAZETA': 'http://www.gazeta.pl/0,0.html',
             'XKCD': 'https://xkcd.com/',
             'PYTHON': 'https://www.python.org/',
+            'W3': 'https://www.w3schools.com/'
         }
         self.urls_list = [
             "https://www.nytimes.com/",
@@ -132,6 +133,12 @@ class TestAll(unittest.TestCase):
         c.open(self.urls['SIMPLE_HTML'])
         p_text = c.xpath('//p/text()')
         self.assertGreaterEqual(len(p_text), 1)
+
+    def test_crawler_xpath_filter(self):
+        c = Crawler()
+        c.open(self.urls['W3'])
+        filtered_results = c.xpath('//p').filter(filters={'class': 'w3-xlarge'})
+        self.assertEqual(filtered_results[0]['class'], 'w3-xlarge')
 
     def test_crawler_css(self):
         c = Crawler()
