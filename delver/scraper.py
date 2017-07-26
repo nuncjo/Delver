@@ -78,6 +78,9 @@ class ResultsList:
     def __getattr__(self, item):
         return getattr(self.results, item)
 
+    def __len__(self):
+        return self.results.__len__()
+
     def filter(self, tags=None, filters=None, match='EQUAL', custom_attrs=None):
         """Filters results list. Item in a list should be instances of `HtmlElement`.
         This method is to narrow result list of scraped elements. It's recommended to use this

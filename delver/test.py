@@ -5,6 +5,8 @@ import shutil
 import unittest
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
+from requests.exceptions import ConnectionError
+
 from .crawler import Crawler
 from .exceptions import CrawlerError
 from .proxies import ProxyPool
@@ -296,6 +298,12 @@ class TestAll(unittest.TestCase):
         )
         self.assertEqual(c.response().json().get('form'), data)
 
+    def test_crawler_open_retries(self):
+        c = Crawler()
+        c.max_retries = 5
+        with self.assertRaises(ConnectionError):
+            c.open('http://www.delver.cg/404')
+        self.assertEqual(c._retries, c.max_retries)
 
 if __name__ == '__main__':
     unittest.main()

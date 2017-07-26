@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from collections import namedtuple, deque
@@ -11,6 +12,7 @@ import requests
 
 from .decorators import with_history
 from .exceptions import CrawlerError
+from .helpers import ForcedInteger
 from .parser import HtmlParser
 from .scraper import Scraper
 from .descriptors import (
@@ -180,6 +182,7 @@ class Crawler(Scraper):
     useragent = Useragent()
     proxy = Proxy()
     headers = Headers()
+    max_retries = ForcedInteger('max_retries')
 
     def __init__(self, history=True, max_history=5, absolute_links=False):
         """Crawler initialization
@@ -201,6 +204,8 @@ class Crawler(Scraper):
         self._proxy = {}
         self._loop = None
         self._executor = None
+        self._max_retries = 0
+        self._retries = 0
 
     def fit_parser(self, response):
         """Fits parser according to response type.
@@ -230,12 +235,23 @@ class Crawler(Scraper):
         :param kwargs: additional keywords like headers, cookies etc.
         :return: class::`Response <Response>` object
         """
+        self._retries = 0
         flow_len = len(self._flow)
         if flow_len < self._max_history:
             self._index = flow_len
 
         self.add_customized_kwargs(kwargs)
-        self._current_response = self._session.request(method, url, **kwargs)
+
+        while True:
+            try:
+                self._current_response = self._session.request(method, url, **kwargs)
+            except Exception as err:
+                self._retries += 1
+                time.sleep(self._retries)
+                if self._retries >= self._max_retries:
+                    raise err
+                continue
+            break
 
         if self.fit_parser(self._current_response):
             self.handle_response()
