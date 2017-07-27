@@ -122,3 +122,16 @@ Using xpath result with filters:
         c = Crawler()
         c.open(self.urls['W3'])
         filtered_results = c.xpath('//p').filter(filters={'class': 'w3-xlarge'})
+
+
+Using retries
+----------------
+
+.. code-block:: python
+
+        c = Crawler()
+        # sets max_retries to 2 means that after there will be max two attempts to open url
+        # if first attempt will fail, wait 1 second and try again, second attempt wait 2 seconds
+        # and then try again
+        c.max_retries = 2
+        c.open('http://www.delver.cg/404')
