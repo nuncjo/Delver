@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import logging
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -206,6 +207,17 @@ class Crawler(Scraper):
         self._executor = None
         self._max_retries = 0
         self._retries = 0
+        self._logging = False
+        self._logger = None
+
+    @property
+    def logging(self):
+        return self._logging
+
+    @logging.setter
+    def logging(self, value):
+        self._logging = value
+        self._logger = logging.getLogger(__name__) if value else None
 
     def fit_parser(self, response):
         """Fits parser according to response type.
@@ -245,15 +257,31 @@ class Crawler(Scraper):
         while True:
             try:
                 self._current_response = self._session.request(method, url, **kwargs)
-            except Exception as err:
+                if self._logging:
+                    self._logger.info(
+                        'Open method: {} request: url={}, status code={}, kwargs={}  '.format(
+                            method.upper(),
+                            url,
+                            self._current_response.status_code,
+                            kwargs
+                        ))
+            except requests.exceptions.ConnectionError:
                 self._retries += 1
                 time.sleep(self._retries)
+                if self.logging:
+                    self._logger.error(
+                        'Failed, try {}, method: {} request: url={}, kwargs={}  '.format(
+                            self._retries,
+                            method.upper(),
+                            url,
+                            kwargs
+                        ))
                 if self._retries >= self._max_retries:
-                    raise err
+                    raise
                 continue
             break
 
-        if self.fit_parser(self._current_response):
+        if self._current_response and self.fit_parser(self._current_response):
             self.handle_response()
             if self._history:
                 self._flow[self._index].update({'response': deepcopy(self._current_response)})

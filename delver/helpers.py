@@ -136,8 +136,9 @@ def custom_property(name, type):
 ForcedInteger = lambda name: typed_property(name, int)
 ForcedString = lambda name: typed_property(name, str)
 ForcedFloat = lambda name: typed_property(name, float)
+ForcedBool = lambda name: typed_property(name, bool)
+
 
 if __name__ == '__main__':
     import doctest
-
     doctest.testmod()

@@ -300,10 +300,12 @@ class TestAll(unittest.TestCase):
 
     def test_crawler_open_retries(self):
         c = Crawler()
-        c.max_retries = 5
+        c.max_retries = 3
+        c.logging = True
         with self.assertRaises(ConnectionError):
-            c.open('http://www.delver.cg/404')
+            c.open('http://www.delver.cg/404', data={'test': 'test data'})
         self.assertEqual(c._retries, c.max_retries)
+
 
 if __name__ == '__main__':
     unittest.main()
