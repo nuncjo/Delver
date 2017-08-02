@@ -4,6 +4,7 @@ import logging
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from random import randrange
 
 from collections import namedtuple, deque
 from copy import deepcopy
@@ -24,9 +25,10 @@ from .descriptors import (
 
 PARSERS = {
     'text/html': HtmlParser,
+    'text/plain': HtmlParser,
     'text/json': HtmlParser,
     'application/xml': HtmlParser,
-    'application/json': HtmlParser,
+    'application/json': HtmlParser
 }
 
 
@@ -209,6 +211,7 @@ class Crawler(Scraper):
         self._retries = 0
         self._logging = False
         self._logger = None
+        self._random_timeout = None
 
     @property
     def logging(self):
@@ -218,6 +221,17 @@ class Crawler(Scraper):
     def logging(self, value):
         self._logging = value
         self._logger = logging.getLogger(__name__) if value else None
+
+    @property
+    def random_timeout(self):
+        return self._random_timeout
+
+    @logging.setter
+    def random_timeout(self, value):
+        if isinstance(value, (list, tuple)):
+            self._random_timeout = value
+        else:
+            raise TypeError('Expected list or tuple.')
 
     def fit_parser(self, response):
         """Fits parser according to response type.
@@ -230,7 +244,8 @@ class Crawler(Scraper):
             if _type in content_type:
                 self._parser = PARSERS[_type](response, session=self._session)
                 return self._parser
-        raise CrawlerError("Couldn't fit parser for {}.".format(content_type))
+        if self._logging:
+            self._logger.info("Couldn't fit parser for {}.".format(content_type))
 
     def handle_response(self):
         """Called after request. Make operations accordng to attributes settings."""
@@ -257,6 +272,8 @@ class Crawler(Scraper):
         while True:
             try:
                 self._current_response = self._session.request(method, url, **kwargs)
+                if self._random_timeout:
+                    time.sleep(randrange(*self._random_timeout))
                 if self._logging:
                     self._logger.info(
                         'Open method: {} request: url={}, status code={}, kwargs={}  '.format(
