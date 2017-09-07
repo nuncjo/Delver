@@ -152,6 +152,7 @@ Use case 1: Scraping Steam Specials using XPath
     c.open('http://store.steampowered.com/search/?specials=1')
     titles, discounts, final_prices = [], [], []
 
+
     while c.links(filters={
         'class': 'pagebtn',
         'text': '>'
