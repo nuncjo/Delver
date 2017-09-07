@@ -194,6 +194,11 @@ class Crawler(Scraper):
         :param max_history: max items stored in flow
         :param absolute_links: globally make links absolute
         """
+        super().__init__(
+            history=history,
+            max_history=max_history,
+            absolute_links=absolute_links
+        )
         self._session = requests.Session()
         self._history = history
         self._max_history = max_history
@@ -226,7 +231,7 @@ class Crawler(Scraper):
     def random_timeout(self):
         return self._random_timeout
 
-    @logging.setter
+    @random_timeout.setter
     def random_timeout(self, value):
         if isinstance(value, (list, tuple)):
             self._random_timeout = value
@@ -422,31 +427,6 @@ class Crawler(Scraper):
         :return: matched parser object like: class::`HtmlParser <HtmlParser>` object
         """
         return self._flow[self._index]['parser']
-
-    def links(self, tags=None, filters=None, match='EQUAL'):
-        """Find all links on current page using given criteria
-
-        Usage::
-
-            >>> c = Crawler()
-            >>> c.open('https://httpbin.org/links/10/0')
-            <Response [200]>
-            >>> links = c.links(
-            ...     tags = ('style', 'link', 'script', 'a'),
-            ...     filters = {
-            ...         'text': '7'
-            ...     },
-            ...     match='NOT_EQUAL'
-            ... )
-            >>> len(links)
-            8
-
-        :param tags: allowed html tags (like 'style', 'link', 'script', 'a')
-        :param filters: dictionary of filters, possible values: id, text, title, class
-        :param match: type of matching, possible values: 'IN', 'NOT_IN', 'EQUAL', 'NOT_EQUAL'
-        :return:
-        """
-        return self.current_parser().find_links(tags, filters, match)
 
     def forms(self, filters=None):
         """Return iterable over forms. Doesn't find javascript forms yet (but will be).

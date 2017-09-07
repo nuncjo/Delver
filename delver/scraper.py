@@ -9,19 +9,24 @@ class Scraper:
     """Scraping methods for `Crawler`
     """
 
+    def __init__(self, *args, **kwargs):
+        self.current_results = []
+
     def css(self, selector):
         """Wraps lxml parser css method"""
         results = self._parser.css(selector)
         if not isinstance(results, list):
             results = [results]
-        return ResultsList(results)
+        self.current_results = ResultsList(results)
+        return self.current_results
 
     def xpath(self, path):
         """Wraps lxml parser xpath method"""
         results = self._parser.xpath(path)
         if not isinstance(results, list):
             results = [results]
-        return ResultsList(results)
+        self.current_results = ResultsList(results)
+        return self.current_results
 
     def regexp(self, selectors=None):
         """Not implemented due the poor performance."""
@@ -34,6 +39,40 @@ class Scraper:
         """
         return self._parser.xpath('//title/text()')
 
+    def links(self, tags=None, filters=None, match='EQUAL'):
+        """Find all links on current page using given criteria
+
+        Usage::
+
+            >>> c = Crawler()
+            >>> c.open('https://httpbin.org/links/10/0')
+            <Response [200]>
+            >>> links = c.links(
+            ...     tags = ('style', 'link', 'script', 'a'),
+            ...     filters = {
+            ...         'text': '7'
+            ...     },
+            ...     match='NOT_EQUAL'
+            ... )
+            >>> len(links)
+            8
+
+        :param tags: allowed html tags (like 'style', 'link', 'script', 'a')
+        :param filters: dictionary of filters, possible values: id, text, title, class
+        :param match: type of matching, possible values: 'IN', 'NOT_IN', 'EQUAL', 'NOT_EQUAL'
+        :return:
+        """
+        self.current_results = ResultsList(
+            list(
+                self.current_parser().find_links(
+                    tags,
+                    filters,
+                    match
+                ).keys()
+            )
+        )
+        return self.current_results
+
     def images(self, filters=None, match='EQUAL'):
         """ Scraping images using filtering
 
@@ -42,7 +81,7 @@ class Scraper:
         :param match: type of matching, possible values: 'IN', 'NOT_IN', 'EQUAL', 'NOT_EQUAL'
         :return:
         """
-        images = {}
+        images = []
         filters = filters or {}
         for image in self._parser.xpath('//img'):
             src = image.attrib.get('src')
@@ -54,8 +93,9 @@ class Scraper:
                     custom_attrs=['alt', 'src']
                 )
                 if matched:
-                    images[src] = matched
-        return images
+                    images.append(src)
+        self.current_results = ResultsList(images)
+        return self.current_results
 
     def tables(self):
         """Scrapes tables to list of dicts. Works only with simple flat tables with <th> headers.
@@ -80,6 +120,9 @@ class ResultsList:
 
     def __len__(self):
         return self.results.__len__()
+
+    def __getitem__(self, item):
+        return self.results.__getitem__(item)
 
     def filter(self, tags=None, filters=None, match='EQUAL', custom_attrs=None):
         """Filters results list. Item in a list should be instances of `HtmlElement`.
@@ -108,3 +151,6 @@ class ResultsList:
                 if matched:
                     filtered_results.append(matched)
         return filtered_results
+
+    def strip(self):
+        return [result.strip() for result in self.results]

@@ -13,4 +13,3 @@ def setup_logging(default_path='logging.json', default_level=logging.ERROR):
         logging.config.dictConfig(config)
     else:
         logging.basicConfig(level=default_level)
-

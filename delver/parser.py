@@ -18,7 +18,7 @@ class HtmlParser:
 
     def __init__(self, response, session=None, use_cleaner=None, cleaner_params=None):
         self._html_tree = html.fromstring(response.content)
-        self._links = {}
+        self.links = {}
         self._forms = []
         self._cleaner = Cleaner(**cleaner_params) if use_cleaner else None
         self._session = session
@@ -57,8 +57,8 @@ class HtmlParser:
                 match=match
             )
             if matched:
-                self._links[url] = matched
-        return self._links
+                self.links[url] = matched
+        return self.links
 
     def find_forms(self, filters=None):
         """ Find forms and wraps them with class::`<FormWrapper>` object
@@ -91,5 +91,4 @@ class HtmlParser:
 
 if __name__ == '__main__':
     import doctest
-
     doctest.testmod()

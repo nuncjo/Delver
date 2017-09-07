@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from collections import defaultdict
+from lxml.html.clean import Cleaner
 
 __all__ = ['match_form', 'table_to_dict', 'filter_element']
 
@@ -83,22 +84,41 @@ def match_form(wrapped_form, filters):
 def table_to_dict(table):
     """Turns lxml //table element to dict. Works only with simple flat tables.
 
+    todo:: add handling rowspan [[] []]
+
     :param table: lxml `<Element>` object
     :return: defaultdict
     """
+    cleaner = Cleaner(
+        javascript=False,
+        style=False
+    )
 
     def process_row():
         for subindex, row_child in enumerate(child.iterchildren()):
-            if row_child.tag == 'th':
-                headers.append(row_child.text_content())
-            elif row_child.tag == 'td' and headers:
-                table_dict[index].update({
-                    headers[subindex]: row_child.text_content()
-                })
+            if index == 0:
+                row_child = cleaner.clean_html(row_child)
+                colspan = int(row_child.attrib.get('colspan') or 0)
+                if colspan:
+                    row_content = row_child.text_content()
+                    colspans[row_content] = colspan
+                    for _ in range(colspan):
+                        headers.append(row_content)
+                else:
+                    headers.append(row_child.text_content())
+            elif row_child.tag == 'td':
+                if headers[subindex] in colspans:
+                    if not headers[subindex] in table_dict[index]:
+                        table_dict[index][headers[subindex]] = [row_child.text_content()]
+                    else:
+                        table_dict[index][headers[subindex]].append(row_child.text_content())
+                else:
+                    table_dict[index][headers[subindex]] = row_child.text_content()
             elif not headers:
                 return {}
 
     headers = []
+    colspans = {}
     table_dict = defaultdict(dict)
     for index, child in enumerate(table.iterchildren()):
         if child.tag == 'tr':

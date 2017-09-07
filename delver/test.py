@@ -77,8 +77,6 @@ class TestAll(unittest.TestCase):
             }, match='EQUAL'
         )
         self.assertTrue(links)
-        for href, attrs in links.items():
-            self.assertEqual(attrs['id'], 'LinkArea:MT')
 
     def test_parse_form(self):
         c = Crawler()
@@ -159,7 +157,7 @@ class TestAll(unittest.TestCase):
         c = Crawler(absolute_links=True)
         c.open(self.urls['SCRAPING_QUOTES'])
         tags_links = c.links(filters={'class': 'tag'})
-        for link in tags_links.keys():
+        for link in tags_links:
             c.follow(link)
         history = c.history()
         c.back()
@@ -174,7 +172,7 @@ class TestAll(unittest.TestCase):
         c = Crawler(absolute_links=True)
         c.open(self.urls['SCRAPING_QUOTES'])
         tags_links = c.links(filters={'class': 'tag'})
-        for link in tags_links.keys():
+        for link in tags_links:
             c.follow(link)
         self.assertTrue(c.history())
         c.clear()
@@ -220,7 +218,7 @@ class TestAll(unittest.TestCase):
         """
         c = Crawler()
         c.open(self.urls['XKCD'])
-        full_images_urls = [c.join_url(src) for src in c.images().keys()]
+        full_images_urls = [c.join_url(src) for src in c.images()]
         downloaded_files = c.download_files(self.test_dir, files=full_images_urls)
         self.assertEqual(len(full_images_urls), len(downloaded_files))
 
@@ -275,7 +273,7 @@ class TestAll(unittest.TestCase):
 
         def open_and_download(url):
             response = c.open(url)
-            full_images_urls = [c.join_url(src) for src in c.images().keys()]
+            full_images_urls = [c.join_url(src) for src in c.images()]
             downloaded_files = c.download_files(self.test_dir, files=full_images_urls)
             self.assertEqual(len(full_images_urls), len(downloaded_files))
             return response
@@ -305,6 +303,18 @@ class TestAll(unittest.TestCase):
         with self.assertRaises(ConnectionError):
             c.open('http://www.delver.cg/404', data={'test': 'test data'})
         self.assertEqual(c._retries, c.max_retries)
+
+    def test_crawler_random_timeout(self):
+        urls = [
+            'https://httpbin.org/html',
+            'https://www.w3schools.com/html/html_tables.asp',
+            'https://httpbin.org/user-agent'
+        ]
+        c = Crawler()
+        c.random_timeout = (0, 5)
+        c.logging = True
+        for url in urls:
+            c.open(url)
 
 
 if __name__ == '__main__':

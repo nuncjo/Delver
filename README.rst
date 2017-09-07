@@ -124,7 +124,7 @@ Using xpath result with filters:
         filtered_results = c.xpath('//p').filter(filters={'class': 'w3-xlarge'})
 
 
-Using retries
+Using retries:
 ----------------
 
 .. code-block:: python
@@ -135,3 +135,54 @@ Using retries
         # and then try again
         c.max_retries = 2
         c.open('http://www.delver.cg/404')
+
+
+Use case 1: Scraping Steam Specials using XPath
+----------------
+
+.. code-block:: python
+
+    from pprint import pprint
+    from delver import Crawler
+
+    c = Crawler(absolute_links=True)
+    c.logging = True
+    c.useragent = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+    c.random_timeout = (0, 5)
+    c.open('http://store.steampowered.com/search/?specials=1')
+    titles, discounts, final_prices = [], [], []
+    while c.links(filters={
+        'class': 'pagebtn',
+        'text': '>'
+    }):
+        c.open(c.current_results[0])
+        titles.extend(
+            c.xpath("//div/span[@class='title']/text()")
+        )
+        discounts.extend(
+            c.xpath("//div[contains(@class, 'search_discount')]/span/text()")
+        )
+        final_prices.extend(
+            c.xpath("//div[contains(@class, 'discounted')]//text()[2]").strip()
+        )
+
+    all_results = {
+        row[0]: {
+            'discount': row[1],
+            'final_price': row[2]
+        } for row in zip(titles, discounts, final_prices)}
+
+
+Use case 2: Box office mojo daily movies (simple tables scraping out of the box)
+----------------
+
+.. code-block:: python
+
+    from pprint import pprint
+    from delver import Crawler
+
+    c = Crawler(absolute_links=True)
+    c.logging = True
+    c.useragent = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+    c.open("http://www.boxofficemojo.com/daily/")
+    pprint(c.tables())
