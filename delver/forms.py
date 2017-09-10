@@ -2,7 +2,7 @@
 
 import io
 
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 from lxml.html import (
     CheckboxGroup,
@@ -49,31 +49,6 @@ class FormWrapper:
     - Checking if there are specific fields in form - method ``has_fields``
     - Simplified api to access form attributes like ``id``, ``name``
 
-    Usage::
-
-    >>> from lxml import html
-    >>> import requests
-    >>> session = requests.Session()
-    >>> response = session.get('https://httpbin.org/forms/post')
-    >>> html_tree = html.fromstring(response.content)
-    >>> form = FormWrapper(html_tree.forms[0], session=session, url=response.url)
-    >>> form.fields = {
-    ...        'custname': 'aaa',
-    ...        'delivery': '',
-    ...        'custemail': 'test@email.com',
-    ...        'comments': 'What a nice form to post!',
-    ...        'size': 'medium',
-    ...        'topping': ['bacon', 'cheese'],
-    ...        'custtel': '+48606505888'
-    ...    }
-    >>> form.submit(extra_values={'extra_value': "I am your father."})
-    <Response [200]>
-    >>> form.check(
-    ...        phrase="I am your father.",
-    ...        url='https://httpbin.org/post',
-    ...        status_codes=[200]
-    ...     )
-    True
     """
 
     def __init__(self, lxml_form, session=None, url=None):
@@ -89,6 +64,26 @@ class FormWrapper:
         self._session = session
         self._result = None
         self._url = url or None
+
+    @property
+    def result(self):
+        return self._result
+
+    @result.setter
+    def result(self, value):
+        self._result = value
+
+    @property
+    def files(self):
+        return self._files
+
+    @files.getter
+    def files(self):
+        return self._files
+
+    @files.setter
+    def files(self, value):
+        self._files = value
 
     @property
     def fields(self):
@@ -135,8 +130,9 @@ class FormWrapper:
 
         :return: str
         """
+        action_url = self.action
         return urljoin(
-            self._url,
+            self._url if urlparse(action_url).scheme else '',
             self.action
         )
 
@@ -150,17 +146,6 @@ class FormWrapper:
                 return False
         return True
 
-    def check(self, phrase=None, url=None, status_codes=None):
-        """Checks if success conditions of form submit are met
-
-        :return: bool
-        """
-        return any([
-            phrase in self._result.text if phrase else True,
-            self._result.url == url if url else True,
-            self._result.status_code in status_codes if status_codes else True
-        ])
-
     def __getattr__(self, item):
         """Wraps some chosen methods (PARENT_METHODS) from ``lxml.html.FormElement``
 
@@ -170,24 +155,6 @@ class FormWrapper:
         if item in PARENT_METHODS:
             return getattr(self._lxml_form, item)
         return getattr(self, item)
-
-    def submit(self, custom_action=None, extra_values=None):
-        """Submits current form
-
-        :param custom_action: custom action url
-        :param extra_values: extra values to submit even if form has no matching inputs
-        :return: submit result
-        """
-        action = custom_action or self.action_url()
-        values = self.form_values()
-        self.append_extra_values(values, extra_values)
-        self._result = self._session.request(
-            self.method,
-            action,
-            data=values,
-            files=self._files
-        )
-        return self._result
 
     def append_extra_values(self, values, extra_values):
         """ Extends form values by adding extra values.

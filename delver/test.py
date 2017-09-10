@@ -83,17 +83,19 @@ class TestAll(unittest.TestCase):
         response = c.open(self.urls['FORM2'])
         self.assertEqual(response.status_code, 200)
         forms = c.forms(filters={'id': 'searchbox'})
-        forms[0].fields = {
+        search_form = forms[0]
+        search_form.fields = {
             'search_query': 'cute kittens'
         }
-        self.assertEqual(forms[0].fields['search_query'].get('value'), 'cute kittens')
+        self.assertEqual(search_form.fields['search_query'].get('value'), 'cute kittens')
 
     def test_submit_form(self):
         c = Crawler()
         response = c.open(self.urls['FORM'])
         self.assertEqual(response.status_code, 200)
         forms = c.forms()
-        forms[0].fields = {
+        form = forms[0]
+        form.fields = {
             'custname': 'aaa',
             'delivery': '',
             'custemail': 'test@email.com',
@@ -102,11 +104,13 @@ class TestAll(unittest.TestCase):
             'topping': ['bacon', 'cheese'],
             'custtel': '+48606505888'
         }
-        forms[0].submit(extra_values={'extra_value': "I am your father."})
-        success = forms[0].check(
+        c.submit(form, data={'extra_value': "I am your father."})
+        success = c.submit_check(
+            form,
             phrase="I am your father.",
             url=self.urls['POST'],
-            status_codes=[200])
+            status_codes=[200]
+        )
         self.assertEqual(success, True)
 
     def test_response_history(self):
@@ -154,7 +158,7 @@ class TestAll(unittest.TestCase):
         self.assertTrue(c.images())
 
     def test_crawler_back_forward_navigation(self):
-        c = Crawler(absolute_links=True)
+        c = Crawler()
         c.open(self.urls['SCRAPING_QUOTES'])
         tags_links = c.links(filters={'class': 'tag'})
         for link in tags_links:
@@ -169,7 +173,7 @@ class TestAll(unittest.TestCase):
         self.assertRaises(CrawlerError, c.forward, step=5)
 
     def test_crawler_clear_flow(self):
-        c = Crawler(absolute_links=True)
+        c = Crawler()
         c.open(self.urls['SCRAPING_QUOTES'])
         tags_links = c.links(filters={'class': 'tag'})
         for link in tags_links:
@@ -227,14 +231,17 @@ class TestAll(unittest.TestCase):
         c = Crawler()
         c.open(self.urls['FILE_UPLOAD'])
         forms = c.forms()
-        forms[0].fields = {
+        upload_form = forms[0]
+        upload_form.fields = {
             'note': 'Towel cat picture',
             'upfile': open(self.upload_file, 'r')
         }
-        forms[0].submit()
-        success = forms[0].check(
+        c.submit(upload_form, action='http://cgi-lib.berkeley.edu/ex/fup.cgi')
+        success = c.submit_check(
+            upload_form,
             phrase="road is easy",
-            status_codes=[200])
+            status_codes=[200]
+        )
         self.assertTrue(success)
 
     def test_proxy_pool(self):
@@ -291,7 +298,7 @@ class TestAll(unittest.TestCase):
             'title': 'Fluent Python'
         }
         c.submit(
-            url=self.urls['POST'],
+            action=self.urls['POST'],
             data=data
         )
         self.assertEqual(c.response().json().get('form'), data)

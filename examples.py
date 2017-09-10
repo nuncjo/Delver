@@ -5,7 +5,7 @@ from delver import Crawler
 
 
 def scraping_steam_specials():
-    c = Crawler(absolute_links=True)
+    c = Crawler()
     c.logging = True
     c.useragent = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
     c.random_timeout = (0, 5)
@@ -35,8 +35,32 @@ def scraping_steam_specials():
 
 
 def scraping_movies_table():
-    c = Crawler(absolute_links=True)
+    c = Crawler()
     c.logging = True
     c.useragent = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
     c.open("http://www.boxofficemojo.com/daily/")
     pprint(c.tables())
+
+
+def user_login():
+    c = Crawler()
+    c.useragent = (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/60.0.3112.90 Safari/537.36"
+    )
+    c.random_timeout = (0, 5)
+    c.open('http://testing-ground.scraping.pro/login')
+    forms = c.forms()
+    if forms:
+        login_form = forms[0]
+        login_form.fields = {
+            'usr': 'admin',
+            'pwd': '12345'
+        }
+        c.submit(login_form)
+        success_check = c.submit_check(
+            login_form,
+            phrase='WELCOME :)',
+            status_codes=[200]
+        )
+        print(success_check)

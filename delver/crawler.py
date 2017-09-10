@@ -64,21 +64,23 @@ class Crawler(Scraper):
         >>> forms = c.forms()
 
         Filling up fields values:
-        >>> forms[0].fields = {
+        >>> form = forms[0]
+        >>> form.fields = {
         ...    'custname': 'Ruben Rybnik',
         ...    'custemail': 'ruben.rybnik@fakemail.com',
         ...    'size': 'medium',
         ...    'topping': ['bacon', 'cheese'],
         ...    'custtel': '+48606505888'
         ... }
-        >>> submit_result = forms[0].submit()
+        >>> submit_result = c.submit(form)
         >>> submit_result.status_code
         200
 
         Checking if form post ended with success:
-        >>> forms[0].check(
+        >>> c.submit_check(
+        ...    form,
         ...    phrase="Ruben Rybnik",
-        ...    url='https://httpbin.org/forms/post',
+        ...    url='https://httpbin.org/post',
         ...    status_codes=[200])
         True
 
@@ -89,15 +91,18 @@ class Crawler(Scraper):
         >>> c.open('http://cgi-lib.berkeley.edu/ex/fup.html')
         <Response [200]>
         >>> forms = c.forms()
-        >>> forms[0].fields = {
+        >>> upload_form = forms[0]
+        >>> upload_form.fields = {
         ...    'note': 'Text file with quote',
         ...    'upfile': open('test/test_file.txt', 'r')
         ... }
-        >>> forms[0].submit()
+        >>> c.submit(upload_form, action='http://cgi-lib.berkeley.edu/ex/fup.cgi')
         <Response [200]>
-        >>> forms[0].check(
+        >>> c.submit_check(
+        ...    upload_form,
         ...    phrase="road is easy",
-        ...    status_codes=[200])
+        ...    status_codes=[200]
+        ... )
         True
 
     Cookies handling::
@@ -129,13 +134,13 @@ class Crawler(Scraper):
 
     Find images::
 
-        >>> c = Crawler(absolute_links=True)
+        >>> c = Crawler()
         >>> c.open('https://www.python.org/')
         <Response [200]>
 
         First image path with 'python-logo' in string:
         >>> next(
-        ...     image_path for image_path in c.images().keys()
+        ...     image_path for image_path in c.images()
         ...     if 'python-logo' in image_path
         ... )
         'https://www.python.org/static/img/python-logo.png'
@@ -158,23 +163,22 @@ class Crawler(Scraper):
         >>> c = Crawler()
         >>> c.open('https://xkcd.com/')
         <Response [200]>
-        >>> full_images_urls = [c.join_url(src) for src in c.images().keys()]
+        >>> full_images_urls = [c.join_url(src) for src in c.images()]
         >>> downloaded_files = c.download_files('test', files=full_images_urls)
         >>> len(full_images_urls) == len(downloaded_files)
         True
 
     Traversing through history::
 
-        >>> c = Crawler(absolute_links=True)
+        >>> c = Crawler()
         >>> c.open('http://quotes.toscrape.com/')
         <Response [200]>
         >>> tags_links = c.links(filters={'class': 'tag'})
-        >>> urls = list(tags_links.keys())
-        >>> c.follow(urls[0])
+        >>> c.follow(tags_links[0])
         <Response [200]>
-        >>> c.follow(urls[1])
+        >>> c.follow(tags_links[1])
         <Response [200]>
-        >>> c.follow(urls[2])
+        >>> c.follow(tags_links[2])
         <Response [200]>
         >>> history = c.history()
         >>> c.back()
@@ -187,7 +191,7 @@ class Crawler(Scraper):
     headers = Headers()
     max_retries = ForcedInteger('max_retries')
 
-    def __init__(self, history=True, max_history=5, absolute_links=False):
+    def __init__(self, history=True, max_history=5, absolute_links=True):
         """Crawler initialization
 
         :param history: bool, turns on/off history handling
@@ -268,6 +272,7 @@ class Crawler(Scraper):
         :return: class::`Response <Response>` object
         """
         self._retries = 0
+        self._current_response = None
         flow_len = len(self._flow)
         if flow_len < self._max_history:
             self._index = flow_len
@@ -308,31 +313,6 @@ class Crawler(Scraper):
             if self._history:
                 self._flow[self._index].update({'response': deepcopy(self._current_response)})
             return self._current_response
-
-    def submit(self, url=None, data=None):
-        """Direct submit. Used when quick post to form is needed or if there are no forms found
-        by the parser.
-
-        Usage::
-
-            >>> data = {'name': 'Piccolo'}
-            >>> c = Crawler()
-            >>> result = c.submit('https://httpbin.org/post', data=data)
-            >>> result.status_code
-            200
-
-        :param url: submit url, form action url, str
-        :param data: submit parameters, dict
-        :return: class::`Response <Response>` object
-        """
-        current_url = None
-        if self._current_response:
-            current_url = self._current_response.url
-        return self.open(
-            url or current_url,
-            method='post',
-            data=data or {}
-        )
 
     def add_customized_kwargs(self, kwargs):
         """Adds request keyword arguments customized by setting `Crawler`
@@ -431,6 +411,13 @@ class Crawler(Scraper):
     def forms(self, filters=None):
         """Return iterable over forms. Doesn't find javascript forms yet (but will be).
 
+            example_filters = {
+                'id': 'searchbox',
+                'name': 'name,
+                'action': 'action',
+                'has_fields': ['field1', 'field2'],
+            }
+
         Usage::
 
             >>> c = Crawler()
@@ -444,6 +431,68 @@ class Crawler(Scraper):
         if self._history:
             return self.current_parser().find_forms(filters)
         return self._parser.find_forms(filters)
+
+    def submit(self, form=None, action=None, data=None):
+        """Submits form
+
+        :param form: `FormWrapper` object
+        :param action: custom action url
+        :param data: additional custom values to submit
+        :return: submit result
+        """
+        if form:
+            action = action or form.action_url()
+            values = form.form_values()
+            form.append_extra_values(values, data)
+            form.result = self.open(
+                action,
+                form.method,
+                data=values,
+                files=form.files,
+            )
+        else:
+            self.direct_submit(url=action, data=data)
+        return self._current_response
+
+    def direct_submit(self, url=None, data=None):
+        """Direct submit. Used when quick post to form is needed or if there are no forms found
+        by the parser.
+
+        Usage::
+
+            >>> data = {'name': 'Piccolo'}
+            >>> c = Crawler()
+            >>> result = c.submit(action='https://httpbin.org/post', data=data)
+            >>> result.status_code
+            200
+
+        :param url: submit url, form action url, str
+        :param data: submit parameters, dict
+        :return: class::`Response <Response>` object
+        """
+        current_url = None
+        if self._current_response:
+            current_url = self._current_response.url
+        return self.open(
+            url or current_url,
+            method='post',
+            data=data or {}
+        )
+
+    def submit_check(self, form, phrase=None, url=None, status_codes=None):
+        """Checks if success conditions of form submit are met
+
+        :param form: `FormWrapper` object
+        :param phrase: expected phrase in text
+        :param url: expected url
+        :param status_codes: list of expected status codes
+        :return: bool
+        """
+        return all([
+            phrase in form.result.text if phrase else True,
+            form.result.url == url if url else True,
+            form.result.status_code in status_codes if status_codes else True
+        ])
 
     def encoding(self):
         """Returns current respose encoding."""

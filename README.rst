@@ -2,10 +2,8 @@ Delver
 ========================
 
 Programmatic web browser/crawler in Python. Alternative to Machanize, RoboBrowser, MechanicalSoup
-and others but with cleaner more pythonic and modern API. Projects like Mechanize were built on top on
-api taken from Perl language (not pythonic). Delver won't use BeautifulSoup but strict power of Request and Lxml.
-Delver will have much more features and methods usefull in scraping "out of the box".
-Lots of features are still in progress.
+and others. Strict power of Request and Lxml. Some features and methods usefull in scraping "out of the box".
+
 
 .. code-block:: bash
 
@@ -22,22 +20,25 @@ Example form submit:
         >>> forms = c.forms()
 
         # Filling up fields values:
-        >>> forms[0].fields = {
+        >>> form = forms[0]
+        >>> form.fields = {
         ...    'custname': 'Ruben Rybnik',
         ...    'custemail': 'ruben.rybnik@fakemail.com',
         ...    'size': 'medium',
         ...    'topping': ['bacon', 'cheese'],
         ...    'custtel': '+48606505888'
         ... }
-        >>> submit_result = forms[0].submit()
+        >>> submit_result = c.submit(form)
         >>> submit_result.status_code
         200
 
         # Checking if form post ended with success:
-        >>> forms[0].check(
+        >>> c.submit_check(
+        ...    form,
         ...    phrase="Ruben Rybnik",
         ...    url='https://httpbin.org/forms/post',
-        ...    status_codes=[200])
+        ...    status_codes=[200]
+        ... )
         True
 
 
@@ -88,7 +89,7 @@ Download files list in parallel:
         >>> c = Crawler()
         >>> c.open('https://xkcd.com/')
         <Response [200]>
-        >>> full_images_urls = [c.join_url(src) for src in c.images().keys()]
+        >>> full_images_urls = [c.join_url(src) for src in c.images()]
         >>> downloaded_files = c.download_files('test', files=full_images_urls)
         >>> len(full_images_urls) == len(downloaded_files)
         True
@@ -120,7 +121,7 @@ Using xpath result with filters:
 .. code-block:: python
 
         c = Crawler()
-        c.open(self.urls['W3'])
+        c.open('https://www.w3schools.com/')
         filtered_results = c.xpath('//p').filter(filters={'class': 'w3-xlarge'})
 
 
@@ -173,6 +174,7 @@ Use case 1: Scraping Steam Specials using XPath
             'discount': row[1],
             'final_price': row[2]
         } for row in zip(titles, discounts, final_prices)}
+    pprint(all_results)
 
 
 Use case 2: Box office mojo daily movies (simple tables scraping out of the box)
@@ -188,3 +190,34 @@ Use case 2: Box office mojo daily movies (simple tables scraping out of the box)
     c.useragent = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
     c.open("http://www.boxofficemojo.com/daily/")
     pprint(c.tables())
+
+
+Use case 3: User login
+----------------
+
+.. code-block:: python
+
+
+    from delver import Crawler
+
+    c = Crawler()
+    c.useragent = (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/60.0.3112.90 Safari/537.36"
+    )
+    c.random_timeout = (0, 5)
+    c.open('http://testing-ground.scraping.pro/login')
+    forms = c.forms()
+    if forms:
+        login_form = forms[0]
+        login_form.fields = {
+            'usr': 'admin',
+            'pwd': '12345'
+        }
+        c.submit(login_form)
+        success_check = c.submit_check(
+            login_form,
+            phrase='WELCOME :)',
+            status_codes=[200]
+        )
+        print(success_check)
