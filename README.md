@@ -56,7 +56,7 @@ and others. Strict power of Request and Lxml. Some features and methods usefull 
 
 ## Find links narrowed by filters
 
-.. code-block:: python
+```python
 
         >>> c = Crawler()
         >>> c.open('https://httpbin.org/links/10/0')
@@ -73,11 +73,11 @@ and others. Strict power of Request and Lxml. Some features and methods usefull 
         ... )
         >>> len(links)
         8
-
+```
 
 ## Download file
 
-.. code-block:: python
+```python
 
         >>> import os
 
@@ -89,11 +89,11 @@ and others. Strict power of Request and Lxml. Some features and methods usefull 
         ... )
         >>> os.path.isfile(local_file_path)
         True
-
+```
 
 ## Download files list in parallel
 
-.. code-block:: python
+```python
 
         >>> c = Crawler()
         >>> c.open('https://xkcd.com/')
@@ -102,38 +102,38 @@ and others. Strict power of Request and Lxml. Some features and methods usefull 
         >>> downloaded_files = c.download_files('test', files=full_images_urls)
         >>> len(full_images_urls) == len(downloaded_files)
         True
-
+```
 
 ## Xpath selectors
 
-.. code-block:: python
+```python
 
         c = Crawler()
         c.open('https://httpbin.org/html')
         p_text = c.xpath('//p/text()')
-
+```
 
 ## Css selectors
 
-.. code-block:: python
+```python
 
         c = Crawler()
         c.open('https://httpbin.org/html')
         p_text = c.css('div')
-
+```
 
 ## Xpath result with filters
 
-.. code-block:: python
+```python
 
         c = Crawler()
         c.open('https://www.w3schools.com/')
         filtered_results = c.xpath('//p').filter(filters={'class': 'w3-xlarge'})
-
+```
 
 ## Using retries
 
-.. code-block:: python
+```python
 
         c = Crawler()
         # sets max_retries to 2 means that after there will be max two attempts to open url
@@ -141,14 +141,14 @@ and others. Strict power of Request and Lxml. Some features and methods usefull 
         # and then try again
         c.max_retries = 2
         c.open('http://www.delver.cg/404')
-
+```
 
 ## Use examples
 
 
 ## Scraping Steam Specials using XPath
 
-.. code-block:: python
+```python
 
     from pprint import pprint
     from delver import Crawler
@@ -182,11 +182,11 @@ and others. Strict power of Request and Lxml. Some features and methods usefull 
             'final_price': row[2]
         } for row in zip(titles, discounts, final_prices)}
     pprint(all_results)
-
+```
 
 ## Simple tables scraping out of the box
 
-.. code-block:: python
+```python
 
     from pprint import pprint
     from delver import Crawler
@@ -196,11 +196,11 @@ and others. Strict power of Request and Lxml. Some features and methods usefull 
     c.useragent = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
     c.open("http://www.boxofficemojo.com/daily/")
     pprint(c.tables())
-
+```
 
 ## User login
 
-.. code-block:: python
+```python
 
 
     from delver import Crawler
@@ -226,3 +226,4 @@ and others. Strict power of Request and Lxml. Some features and methods usefull 
             status_codes=[200]
         )
         print(success_check)
+```
