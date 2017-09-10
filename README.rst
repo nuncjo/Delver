@@ -9,8 +9,25 @@ and others. Strict power of Request and Lxml. Some features and methods usefull 
 
     $ pip install delver
 
-Example form submit:
-----------------
+
+- [Basic examples](#basic-examples)
+    - [Form submit](#form-submit)
+    - [Find links narrowed by filters](#find-links-narrowed-by-filters)
+    - [Download file](#download-file)
+    - [Download files list in parallel](#download-files-list-in-parallel:)
+    - [Xpath selectors](#xpath-selectors)
+    - [Css selectors](#css-selectors)
+    - [Xpath result with filters](#xpath-result-with-filters)
+- [Use examples](#use-examples)
+    - [Scraping Steam Specials using XPath](#scraping-steam-specials-using-xpath)
+    - [Simple tables scraping out of the box](#simple-tables-scraping-out-of-the-box)
+    - [User login](#user-login)
+
+
+## Basic examples
+
+
+## Form submit
 
 .. code-block:: python
 
@@ -42,8 +59,7 @@ Example form submit:
         True
 
 
-Find links narrowed by filters:
-----------------
+## Find links narrowed by filters
 
 .. code-block:: python
 
@@ -64,8 +80,7 @@ Find links narrowed by filters:
         8
 
 
-Download file:
-----------------
+## Download file
 
 .. code-block:: python
 
@@ -81,8 +96,7 @@ Download file:
         True
 
 
-Download files list in parallel:
-----------------
+## Download files list in parallel
 
 .. code-block:: python
 
@@ -95,8 +109,7 @@ Download files list in parallel:
         True
 
 
-Using xpath selectors:
-----------------
+## Xpath selectors
 
 .. code-block:: python
 
@@ -105,8 +118,7 @@ Using xpath selectors:
         p_text = c.xpath('//p/text()')
 
 
-Using css selectors:
-----------------
+## Css selectors
 
 .. code-block:: python
 
@@ -115,8 +127,7 @@ Using css selectors:
         p_text = c.css('div')
 
 
-Using xpath result with filters:
-----------------
+## Xpath result with filters
 
 .. code-block:: python
 
@@ -125,8 +136,7 @@ Using xpath result with filters:
         filtered_results = c.xpath('//p').filter(filters={'class': 'w3-xlarge'})
 
 
-Using retries:
-----------------
+## Using retries
 
 .. code-block:: python
 
@@ -138,8 +148,10 @@ Using retries:
         c.open('http://www.delver.cg/404')
 
 
-Use case 1: Scraping Steam Specials using XPath
-----------------
+## Use examples
+
+
+## Scraping Steam Specials using XPath
 
 .. code-block:: python
 
@@ -177,8 +189,7 @@ Use case 1: Scraping Steam Specials using XPath
     pprint(all_results)
 
 
-Use case 2: Box office mojo daily movies (simple tables scraping out of the box)
-----------------
+## Simple tables scraping out of the box
 
 .. code-block:: python
 
@@ -192,8 +203,7 @@ Use case 2: Box office mojo daily movies (simple tables scraping out of the box)
     pprint(c.tables())
 
 
-Use case 3: User login
-----------------
+## User login
 
 .. code-block:: python
 
