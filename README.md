@@ -8,7 +8,7 @@ and others. Strict power of Request and Lxml. Some features and methods usefull 
     - [Form submit](#form-submit)
     - [Find links narrowed by filters](#find-links-narrowed-by-filters)
     - [Download file](#download-file)
-    - [Download files list in parallel](#download-files-list-in-parallel:)
+    - [Download files list in parallel](#download-files-list-in-parallel)
     - [Xpath selectors](#xpath-selectors)
     - [Css selectors](#css-selectors)
     - [Xpath result with filters](#xpath-result-with-filters)
@@ -24,7 +24,7 @@ and others. Strict power of Request and Lxml. Some features and methods usefull 
 
 ## Form submit
 
-.. code-block:: python
+```python
 
         >>> from delver import Crawler
         >>> c = Crawler()
@@ -52,7 +52,7 @@ and others. Strict power of Request and Lxml. Some features and methods usefull 
         ...    status_codes=[200]
         ... )
         True
-
+```
 
 ## Find links narrowed by filters
 
