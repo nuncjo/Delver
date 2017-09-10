@@ -1,7 +1,7 @@
 Delver
 ========================
 
-Programmatic web browser/crawler in Python. Alternative to Machanize, RoboBrowser, MechanicalSoup
+Programmatic web browser/crawler in Python. **Alternative to Mechanize, RoboBrowser, MechanicalSoup**
 and others. Strict power of Request and Lxml. Some features and methods usefull in scraping "out of the box".
 
 - [Basic examples](#basic-examples)
