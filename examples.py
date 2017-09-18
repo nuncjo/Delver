@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 
+import os
 from pprint import pprint
 from delver import Crawler
 
@@ -64,3 +65,34 @@ def user_login():
             status_codes=[200]
         )
         print(success_check)
+
+
+class OnePunchManDownloader:
+    """Downloads One Punch Man free manga chapers to local directories.
+    Uses one main thread for scraper with random timeout.
+    Uses 20 threads just for image downloads.
+    """
+    def __init__(self):
+        self._target_directory = 'one_punch_man'
+        self._start_url = "http://m.mangafox.me/manga/onepunch_man_one/"
+        self.crawler = Crawler()
+        self.crawler.random_timeout = (0, 5)
+        self.crawler.useragent = "Googlebot-Image/1.0"
+
+    def run(self):
+        self.crawler.open(self._start_url)
+        for link in self.crawler.links(filters={'text': 'Ch '}, match='IN'):
+            self.download_images(link)
+
+    def download_images(self, link):
+        target_path = '{}/{}'.format(self._target_directory, link.split('/')[-2])
+        full_chapter_url = link.replace('/manga/', '/roll_manga/')
+        self.crawler.open(full_chapter_url)
+        images = self.crawler.xpath("//img[@class='reader-page']/@data-original")
+        os.makedirs(target_path, exist_ok=True)
+        self.crawler.download_files(target_path, files=images, workers=20)
+
+
+def one_punch_downloader():
+    downloader = OnePunchManDownloader()
+    downloader.run()

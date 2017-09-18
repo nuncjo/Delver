@@ -51,7 +51,8 @@ def match_dict(data, filters, match='EQUAL'):
 
     """
     for _filter, value in filters.items():
-        if value and MATCHINGS[match](value, data.get(_filter)):
+        filtered_data = data.get(_filter)
+        if value and filtered_data and MATCHINGS[match](value, filtered_data):
             continue
         else:
             return False
