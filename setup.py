@@ -5,7 +5,7 @@
 
 from setuptools import setup, find_packages
 
-with open('README.rst') as readme_file:
+with open('README.md') as readme_file:
     readme = readme_file.read()
 
 with open('HISTORY.rst') as history_file:
@@ -25,7 +25,7 @@ test_requirements = [
 
 setup(
     name='delver',
-    version='0.1.0',
+    version='0.1.1',
     description="Modern user friendly web automation and scraping library.",
     long_description=readme + '\n\n' + history,
     author="Nuncjo",
