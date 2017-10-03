@@ -4,6 +4,14 @@ Delver
 Programmatic web browser/crawler in Python. **Alternative to Mechanize, RoboBrowser, MechanicalSoup**
 and others. Strict power of Request and Lxml. Some features and methods usefull in scraping "out of the box".
 
+## Install
+
+```shell
+$ pip install delver
+```
+
+## Usage examples
+
 - [Basic examples](#basic-examples)
     - [Form submit](#form-submit)
     - [Find links narrowed by filters](#find-links-narrowed-by-filters)
