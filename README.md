@@ -10,7 +10,11 @@ and others. Strict power of Request and Lxml. Some features and methods usefull 
 $ pip install delver
 ```
 
-## Usage examples
+## Documentation
+
+[http://delver.readthedocs.io/en/latest/](http://delver.readthedocs.io/en/latest/)
+
+## Quick start - usage examples
 
 - [Basic examples](#basic-examples)
     - [Form submit](#form-submit)
