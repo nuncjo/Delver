@@ -6,7 +6,7 @@ This part of the documentation covers the installation of Delver.
 The first step to using any software package is getting it properly installed.
 
 
-$ pip install requests
+$ pip install delver
 ----------------------
 
 To install Delver, simply run this simple command in your terminal of choice::
@@ -18,7 +18,7 @@ Get the Source Code
 -------------------
 
 Delver is actively developed on GitHub, where the code is
-`always available <https://github.com//requests>`_.
+`always available <https://github.com/nuncjo/Delver>`_.
 
 You can either clone the public repository::
 

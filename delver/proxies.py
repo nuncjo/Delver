@@ -50,14 +50,14 @@ class Proxy:
         return requests.get(
             self._test_url,
             proxies={
-                'http': f'http://{self.address}',
-                'https': f'https://{self.address}'
+                'http': 'http://{}'.format(self.address),
+                'https': 'https://{}'.format(self.address),
             },
             timeout=self._timeout
         )
 
     def __repr__(self):
-        return f'<Proxy(address={self.address}, working={self.working})>'
+        return '<Proxy(address={}, working={})>'.format(self.address, self.working)
 
 
 class ProxyPool:

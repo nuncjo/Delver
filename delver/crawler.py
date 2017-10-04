@@ -415,7 +415,8 @@ class Crawler(Scraper):
                 'id': 'searchbox',
                 'name': 'name,
                 'action': 'action',
-                'has_fields': ['field1', 'field2'],
+                'has_fields': ['field1', 'field2']
+
             }
 
         Usage::
