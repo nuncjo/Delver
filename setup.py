@@ -35,7 +35,7 @@ test_requirements = [
 
 setup(
     name='delver',
-    version='version='0.1.6'',
+    version='0.1.6',
     description="Modern user friendly web automation and scraping library.",
     long_description=long_description(),
     author="Nuncjo",

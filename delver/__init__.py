@@ -5,6 +5,6 @@ from .exceptions import CrawlerError
 from .proxies import ProxyPool
 from .settings import setup_logging
 
-__version__ = '__version__ = '0.1.6''
+__version__ = '0.1.6'
 
 setup_logging()
