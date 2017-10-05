@@ -1,15 +1,23 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-"""The setup script."""
 
 from setuptools import setup, find_packages
 
-with open('README.md') as readme_file:
-    readme = readme_file.read()
 
-with open('HISTORY.rst') as history_file:
-    history = history_file.read()
+def long_description():
+
+    def read_markdown(file):
+        try:
+            from pypandoc import convert
+            return convert(file, 'rst')
+        except (ImportError, OSError):
+            with open(file) as readme:
+                return readme.read()
+
+    readme = read_markdown('README.md')
+    with open('HISTORY.rst') as history_file:
+        history = history_file.read()
+        return '\n\n'.join((readme, history))
+
 
 requirements = [
     'requests',
@@ -27,9 +35,9 @@ test_requirements = [
 
 setup(
     name='delver',
-    version='0.1.3',
+    version='version='0.1.6'',
     description="Modern user friendly web automation and scraping library.",
-    long_description=readme + '\n\n' + history,
+    long_description=long_description(),
     author="Nuncjo",
     author_email='zoreander@gmail.com',
     url='https://github.com/nuncjo/delver',
@@ -45,6 +53,7 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.5',
     ],
     test_suite='tests',
     tests_require=test_requirements,
