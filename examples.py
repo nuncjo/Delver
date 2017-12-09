@@ -1,38 +1,11 @@
 # -*- coding:utf-8 -*-
 
 import os
+
+import psycopg2
+
 from pprint import pprint
 from delver import Crawler
-
-
-def scraping_steam_specials():
-    c = Crawler()
-    c.logging = True
-    c.useragent = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
-    c.random_timeout = (0, 5)
-    c.open('http://store.steampowered.com/search/?specials=1')
-    titles, discounts, final_prices = [], [], []
-    while c.links(filters={
-        'class': 'pagebtn',
-        'text': '>'
-    }):
-        c.open(c.current_results[0])
-        titles.extend(
-            c.xpath("//div/span[@class='title']/text()")
-        )
-        discounts.extend(
-            c.xpath("//div[contains(@class, 'search_discount')]/span/text()")
-        )
-        final_prices.extend(
-            c.xpath("//div[contains(@class, 'discounted')]//text()[2]").strip()
-        )
-
-    all_results = {
-        row[0]: {
-            'discount': row[1],
-            'final_price': row[2]
-        } for row in zip(titles, discounts, final_prices)}
-    pprint(all_results)
 
 
 def scraping_movies_table():
@@ -96,3 +69,119 @@ class OnePunchManDownloader:
 def one_punch_downloader():
     downloader = OnePunchManDownloader()
     downloader.run()
+
+
+class WithConnection:
+
+    def __init__(self, params):
+        self._connection = psycopg2.connect(**params)
+        self._connection.autocommit = True
+        self._cursor = self._connection.cursor()
+
+    def table_exists(self, table_name):
+        self._cursor.execute('''
+            select exists(
+                select * from information_schema.tables where table_name='{}'
+            )
+        '''.format(table_name))
+        return self._cursor.fetchone()[0]
+
+
+def scrape_page(crawler):
+    """ Scrapes rows from tables with promotions.
+
+    :param crawler: <delver.crawler.Crawler object>
+    :return: generator with page of rows
+    """
+    titles = crawler.xpath("//div/span[@class='title']/text()")
+    discounts = crawler.xpath("//div[contains(@class, 'search_discount')]/span/text()")
+    final_prices = crawler.xpath("//div[contains(@class, 'discounted')]//text()[2]").strip()
+    yield [{
+               'title': row[0],
+               'discount': row[1],
+               'price': row[2]
+           } for row in zip(titles, discounts, final_prices)]
+
+
+class SteamPromotionsScraper:
+    """ Scraper which can be iterated through
+
+    Usage example::
+        >>> promotions_scraper = SteamPromotionsScraper()
+        >>> for page in promotions_scraper:
+        ...     pprint(page)
+
+    """
+    def __init__(self):
+        self.crawler = Crawler()
+        self.crawler.logging = True
+        self.crawler.useragent = \
+            "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+        self.crawler.random_timeout = (0, 5)
+
+    def scrape_by_page(self):
+        self.crawler.open('http://store.steampowered.com/search/?specials=1')
+        yield from scrape_page(self.crawler)
+        while self.crawler.links(filters={
+            'class': 'pagebtn',
+            'text': '>'
+        }):
+            self.crawler.open(self.crawler.current_results[0])
+            yield from scrape_page(self.crawler)
+
+    def __iter__(self):
+        return self.scrape_by_page()
+
+
+class SteamPromotionsScraperDB(WithConnection):
+    """Example with saving data to postgresql database
+
+    Usage example::
+        >>> promotions_scraper_db = SteamPromotionsScraperDB({
+        ...     'dbname': "test",
+        ...     'user': "testuser",
+        ...     'password': "test"
+        ... })
+        >>> promotions_scraper.save_to_db()
+    """
+
+    def __init__(self, params):
+        super().__init__(params)
+        self.crawler = Crawler()
+        self.crawler.logging = True
+        self.crawler.useragent = \
+            "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+        self.crawler.random_timeout = (0, 5)
+
+    def scrape_by_page(self):
+        self.crawler.open('http://store.steampowered.com/search/?specials=1')
+        yield from scrape_page(self.crawler)
+        while self.crawler.links(filters={
+            'class': 'pagebtn',
+            'text': '>'
+        }):
+            self.crawler.open(self.crawler.current_results[0])
+            yield from scrape_page(self.crawler)
+
+    def save_to_db(self):
+        if not self.table_exists('promotions'):
+            self._cursor.execute(
+                '''
+                    CREATE TABLE promotions (
+                        id serial PRIMARY KEY,
+                        title varchar(255),
+                        discount varchar(4),
+                        price varchar(10)
+                    );
+                '''
+            )
+        for page in self.scrape_by_page():
+            for row in page:
+                self._cursor.execute(
+                    '''
+                        INSERT INTO promotions(title, discount, price)
+                        VALUES(%s, %s, %s)
+                    ''',
+                    (row.get('title'), row.get('discount'), row.get('price'))
+                )
+                pprint(row)
