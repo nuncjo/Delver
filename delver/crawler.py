@@ -23,14 +23,6 @@ from .descriptors import (
     Headers
 )
 
-PARSERS = {
-    'text/html': HtmlParser,
-    'text/plain': HtmlParser,
-    'text/json': HtmlParser,
-    'application/xml': HtmlParser,
-    'application/json': HtmlParser
-}
-
 
 class Crawler(Scraper):
     """Browser mimicking object. Mostly wrapper on Requests and Lxml libraries.
@@ -242,20 +234,6 @@ class Crawler(Scraper):
         else:
             raise TypeError('Expected list or tuple.')
 
-    def fit_parser(self, response):
-        """Fits parser according to response type.
-
-        :param response: class::`Response <Response>` object
-        :return: matched parser object like: class::`HtmlParser <HtmlParser>` object
-        """
-        content_type = response.headers.get('Content-type', '')
-        for _type, parser in PARSERS.items():
-            if _type in content_type:
-                self._parser = PARSERS[_type](response, session=self._session)
-                return self._parser
-        if self._logging:
-            self._logger.info("Couldn't fit parser for {}.".format(content_type))
-
     def handle_response(self):
         """Called after request. Make operations accordng to attributes settings."""
         if self._absolute_links:
@@ -308,7 +286,8 @@ class Crawler(Scraper):
                 continue
             break
 
-        if self._current_response and self.fit_parser(self._current_response):
+        if self._current_response:
+            self._parser = HtmlParser(self._current_response)
             self.handle_response()
             if self._history:
                 self._flow[self._index].update({'response': deepcopy(self._current_response)})
