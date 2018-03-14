@@ -10,7 +10,8 @@ from collections import namedtuple, deque
 from copy import deepcopy
 from urllib.parse import urljoin, urlparse
 
-import requests
+from requests.exceptions import ConnectionError
+from requests_html import HTMLSession
 
 from .decorators import with_history
 from .exceptions import CrawlerError
@@ -195,7 +196,7 @@ class Crawler(Scraper):
             max_history=max_history,
             absolute_links=absolute_links
         )
-        self._session = requests.Session()
+        self._session = HTMLSession()
         self._history = history
         self._max_history = max_history
         self._flow = deque(maxlen=self._max_history)
@@ -270,7 +271,7 @@ class Crawler(Scraper):
                             self._current_response.status_code,
                             kwargs
                         ))
-            except requests.exceptions.ConnectionError:
+            except ConnectionError:
                 self._retries += 1
                 time.sleep(self._retries)
                 if self.logging:
@@ -383,7 +384,7 @@ class Crawler(Scraper):
     def current_parser(self):
         """Return parser associated with current flow item.
 
-        :return: matched parser object like: class::`HtmlParser <HtmlParser>` object
+        :return: matched parser object like: class::`HtmlParser <HtmlPadelverrser>` object
         """
         return self._flow[self._index]['parser']
 

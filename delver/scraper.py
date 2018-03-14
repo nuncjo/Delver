@@ -12,6 +12,11 @@ class Scraper:
     def __init__(self, *args, **kwargs):
         self.current_results = []
 
+    @property
+    def html(self):
+        # TODO: use getattr to wrap only allowed methods of html, according to DRY
+        return self._current_response.html
+
     def css(self, selector):
         """Wraps lxml parser css method"""
         results = self._parser.css(selector)

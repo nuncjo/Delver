@@ -11,6 +11,7 @@ requests = "*"
 lxml = "*"
 cssselect = "*"
 requests-html = "*"
+requests-file = "*"
 
 
 [dev-packages]

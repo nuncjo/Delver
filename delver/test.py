@@ -6,6 +6,7 @@ import unittest
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
 from requests.exceptions import ConnectionError
+from requests_file import FileAdapter
 
 from .crawler import Crawler
 from .exceptions import CrawlerError
@@ -40,7 +41,8 @@ class TestAll(unittest.TestCase):
             'GAZETA': 'http://www.gazeta.pl/0,0.html',
             'XKCD': 'https://xkcd.com/',
             'PYTHON': 'https://www.python.org/',
-            'W3': 'https://www.w3schools.com/'
+            'W3': 'https://www.w3schools.com/',
+            'REQUESTS': 'http://python-requests.org',
         }
         self.urls_list = [
             "https://www.nytimes.com/",
@@ -56,6 +58,9 @@ class TestAll(unittest.TestCase):
         ]
         self.test_dir = os.path.join(os.getcwd(), 'test')
         self.upload_file = os.path.join(self.test_dir, 'upload.txt')
+        self.js_html_file = "file://{}".format(
+            os.path.sep.join((os.path.dirname(os.path.abspath(__file__)), 'python.html'))
+        )
         os.makedirs(self.test_dir, exist_ok=True)
 
         with open(self.upload_file, 'wb') as f:
@@ -322,6 +327,14 @@ class TestAll(unittest.TestCase):
         c.logging = True
         for url in urls:
             c.open(url)
+
+    def test_request_html_js_render(self):
+        c = Crawler()  # TODO: always_render=True
+        c._session.mount('file://', FileAdapter())
+        c.open(self.js_html_file)
+        c.html.render()
+        result = c.html.search('Python is a {programming} language')['programming']
+        self.assertEqual('programming', result)
 
 
 if __name__ == '__main__':
