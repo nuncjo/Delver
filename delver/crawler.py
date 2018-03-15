@@ -184,7 +184,7 @@ class Crawler(Scraper):
     headers = Headers()
     max_retries = ForcedInteger('max_retries')
 
-    def __init__(self, history=True, max_history=5, absolute_links=True):
+    def __init__(self, history=True, max_history=5, absolute_links=True, always_render=False):
         """Crawler initialization
 
         :param history: bool, turns on/off history handling
@@ -194,7 +194,8 @@ class Crawler(Scraper):
         super().__init__(
             history=history,
             max_history=max_history,
-            absolute_links=absolute_links
+            absolute_links=absolute_links,
+            always_render=always_render
         )
         self._session = HTMLSession()
         self._history = history
@@ -204,6 +205,7 @@ class Crawler(Scraper):
         self._parser = None
         self._current_response = None
         self._absolute_links = absolute_links
+        self._always_render = always_render
         self._useragent = None
         self._headers = {}
         self._proxy = {}
@@ -261,6 +263,8 @@ class Crawler(Scraper):
         while True:
             try:
                 self._current_response = self._session.request(method, url, **kwargs)
+                if self._always_render:
+                    self._current_response.html.render()
                 if self._random_timeout:
                     time.sleep(randrange(*self._random_timeout))
                 if self._logging:

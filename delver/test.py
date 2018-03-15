@@ -13,7 +13,7 @@ from .exceptions import CrawlerError
 from .proxies import ProxyPool
 
 
-class TestAll(unittest.TestCase):
+class TestBase(unittest.TestCase):
 
     def setUp(self):
         self.urls = {
@@ -68,6 +68,9 @@ class TestAll(unittest.TestCase):
 
     def tearDown(self):
         shutil.rmtree(self.test_dir, ignore_errors=True)
+
+
+class TestNormal(TestBase):
 
     def test_simple_http_page(self):
         c = Crawler()
@@ -328,11 +331,21 @@ class TestAll(unittest.TestCase):
         for url in urls:
             c.open(url)
 
+
+class TestRendered(TestBase):
+
     def test_request_html_js_render(self):
-        c = Crawler()  # TODO: always_render=True
+        c = Crawler()
         c._session.mount('file://', FileAdapter())
         c.open(self.js_html_file)
         c.html.render()
+        result = c.html.search('Python is a {programming} language')['programming']
+        self.assertEqual('programming', result)
+
+    def test_request_html_js_always_render(self):
+        c = Crawler(always_render=True)
+        c._session.mount('file://', FileAdapter())
+        c.open(self.js_html_file)
         result = c.html.search('Python is a {programming} language')['programming']
         self.assertEqual('programming', result)
 
