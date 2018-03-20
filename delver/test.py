@@ -332,22 +332,43 @@ class TestNormal(TestBase):
             c.open(url)
 
 
-class TestRendered(TestBase):
+class TestRequestsHtmlFeatures(TestBase):
 
     def test_request_html_js_render(self):
         c = Crawler()
         c._session.mount('file://', FileAdapter())
         c.open(self.js_html_file)
-        c.html.render()
-        result = c.html.search('Python is a {programming} language')['programming']
+        c.render()
+        result = c.search('Python is a {programming} language')['programming']
         self.assertEqual('programming', result)
 
     def test_request_html_js_always_render(self):
         c = Crawler(always_render=True)
         c._session.mount('file://', FileAdapter())
         c.open(self.js_html_file)
-        result = c.html.search('Python is a {programming} language')['programming']
+        result = c.search('Python is a {programming} language')['programming']
         self.assertEqual('programming', result)
+
+    def test_pagination_auto_discover(self):
+        c = Crawler()
+        first_page = c.open(self.urls['SCRAPING_QUOTES'])
+        self.assertEqual(first_page.url, 'http://quotes.toscrape.com/')
+        second_page = c.next(fetch=True)
+        self.assertEqual(second_page.url, 'http://quotes.toscrape.com/page/2/')
+
+    def test_pyquery_selectors(self):
+        c = Crawler()
+        c.open(self.urls['SCRAPING_QUOTES'])
+        results = c.pq('div .quote a.tag')
+        self.assertEqual(results[0].attrib.get('href'), '/tag/change/page/1/')
+        print()
+
+    def _html_js_always_render_one_instance(self):
+        """FIXME: submitted issue https://github.com/kennethreitz/requests-html/issues/142
+        c = Crawler(always_render=True)
+        c.open('http://python-requests.org/')
+        c.open('http://python-requests.org/')
+        """
 
 
 if __name__ == '__main__':

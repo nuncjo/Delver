@@ -8,14 +8,33 @@ from .helpers import table_to_dict, filter_element
 class Scraper:
     """Scraping methods for `Crawler`
     """
+    HTML_REQUESTS_METHODS = ('search', 'render', 'next')
 
     def __init__(self, *args, **kwargs):
         self.current_results = []
 
+    def __getattr__(self, item):
+        """Wraps some chosen methods (HTML_REQUESTS_METHODS) from requests_html ``HTML`` object
+
+        :param item: method name
+        :return: value of the attribute
+        """
+        if item in self.HTML_REQUESTS_METHODS:
+            return getattr(self._current_response.html, item)
+        return getattr(self, item)
+
     @property
     def html(self):
-        # TODO: use getattr to wrap only allowed methods of html, according to DRY
         return self._current_response.html
+
+    def pq(self, selector):
+        """PyQuery selectors"""
+        # TODO: methods like this could be simplified by decorator
+        results = self._current_response.html.pq(selector)
+        if not isinstance(results, list):
+            results = [results]
+        self.current_results = ResultsList(results)
+        return self.current_results
 
     def css(self, selector):
         """Wraps lxml parser css method"""
