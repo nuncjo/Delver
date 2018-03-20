@@ -3,6 +3,7 @@
 from functools import wraps
 
 from .exceptions import HistoryError
+from .results import ResultsList
 
 
 def with_history(func):
@@ -14,4 +15,17 @@ def with_history(func):
             return func(*args, **kwargs)
         else:
             raise HistoryError("Crawler history is off.")
+    return wrapper
+
+
+def results_list(func):
+    """Wraps results in `ResultsList` object"""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        results = func(*args, **kwargs)
+        if not isinstance(results, list):
+            results = [results]
+        return ResultsList(results)
+
     return wrapper

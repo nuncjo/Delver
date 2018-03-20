@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from lxml.html import HtmlElement
-
+from .decorators import results_list
+from .results import ResultsList
 from .helpers import table_to_dict, filter_element
 
 
@@ -21,36 +21,26 @@ class Scraper:
         """
         if item in self.HTML_REQUESTS_METHODS:
             return getattr(self._current_response.html, item)
-        return getattr(self, item)
+        return super().__getattr__(item)
 
     @property
     def html(self):
         return self._current_response.html
 
+    @results_list
     def pq(self, selector):
         """PyQuery selectors"""
-        # TODO: methods like this could be simplified by decorator
-        results = self._current_response.html.pq(selector)
-        if not isinstance(results, list):
-            results = [results]
-        self.current_results = ResultsList(results)
-        return self.current_results
+        return self._current_response.html.pq(selector)
 
+    @results_list
     def css(self, selector):
         """Wraps lxml parser css method"""
-        results = self._parser.css(selector)
-        if not isinstance(results, list):
-            results = [results]
-        self.current_results = ResultsList(results)
-        return self.current_results
+        return self._parser.css(selector)
 
+    @results_list
     def xpath(self, path):
         """Wraps lxml parser xpath method"""
-        results = self._parser.xpath(path)
-        if not isinstance(results, list):
-            results = [results]
-        self.current_results = ResultsList(results)
-        return self.current_results
+        return self._parser.xpath(path)
 
     def regexp(self, selectors=None):
         """Not implemented due the poor performance."""
@@ -86,16 +76,9 @@ class Scraper:
         :param match: type of matching, possible values: 'IN', 'NOT_IN', 'EQUAL', 'NOT_EQUAL'
         :return:
         """
-        self.current_results = ResultsList(
-            list(
-                self.current_parser().find_links(
-                    tags,
-                    filters,
-                    match
-                ).keys()
-            )
+        return ResultsList(
+            list(self.current_parser().find_links(tags, filters, match).keys())
         )
-        return self.current_results
 
     def images(self, filters=None, match='EQUAL'):
         """ Scraping images using filtering
@@ -130,51 +113,3 @@ class Scraper:
             table_to_dict(table)
             for table in self._parser.xpath('//table')
         ]
-
-
-class ResultsList:
-
-    __slots__ = ['results']
-
-    def __init__(self, results):
-        self.results = results or []
-
-    def __getattr__(self, item):
-        return getattr(self.results, item)
-
-    def __len__(self):
-        return self.results.__len__()
-
-    def __getitem__(self, item):
-        return self.results.__getitem__(item)
-
-    def filter(self, tags=None, filters=None, match='EQUAL', custom_attrs=None):
-        """Filters results list. Item in a list should be instances of `HtmlElement`.
-        This method is to narrow result list of scraped elements. It's recommended to use this
-        method on relatively small amount of results. It can be done by appropriate use of
-        xpath and css selectors.
-
-        :param tags: allowed html tags (like 'style', 'link', 'script', 'a')
-        :param filters: dictionary of filters, possible values: id, text, title, class
-        :param match: type of matching, possible values: 'IN', 'NOT_IN', 'EQUAL', 'NOT_EQUAL'
-        :param custom_attrs: custom attrs could be added to filters, like `src, alt` for example
-        :return: list of dicts
-        """
-        tags = tags or []
-        filters = filters or {}
-        filtered_results = []
-        for item in self.results:
-            if isinstance(item, HtmlElement):
-                matched = filter_element(
-                    item,
-                    tags=tags,
-                    filters=filters,
-                    match=match,
-                    custom_attrs=custom_attrs
-                )
-                if matched:
-                    filtered_results.append(matched)
-        return filtered_results
-
-    def strip(self):
-        return [result.strip() for result in self.results]
