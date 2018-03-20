@@ -361,7 +361,6 @@ class TestRequestsHtmlFeatures(TestBase):
         c.open(self.urls['SCRAPING_QUOTES'])
         results = c.pq('div .quote a.tag')
         self.assertEqual(results[0].attrib.get('href'), '/tag/change/page/1/')
-        print()
 
     def _html_js_always_render_one_instance(self):
         """FIXME: submitted issue https://github.com/kennethreitz/requests-html/issues/142
