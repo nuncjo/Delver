@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import asyncio
+from contextlib import contextmanager
 from .decorators import results_list
 from .results import ResultsList
 from .helpers import table_to_dict, filter_element
@@ -8,7 +10,7 @@ from .helpers import table_to_dict, filter_element
 class Scraper:
     """Scraping methods for `Crawler`
     """
-    HTML_REQUESTS_METHODS = ('search', 'render', 'next')
+    HTML_REQUESTS_METHODS = ('search', 'render', 'page')
 
     def __init__(self, *args, **kwargs):
         self.current_results = []
@@ -23,9 +25,20 @@ class Scraper:
             return getattr(self._current_response.html, item)
         return super().__getattr__(item)
 
+    @contextmanager
+    def rendered(self):
+        self.render(keep_page=True)
+        yield self.page
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(self.page.close())
+
     @property
     def html(self):
         return self._current_response.html
+
+    @property
+    def next_page(self):
+        return self._current_response.html.next
 
     @results_list
     def pq(self, selector):

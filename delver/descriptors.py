@@ -4,7 +4,9 @@
 class Useragent:
 
     def __get__(self, instance, owner):
-        return instance.__dict__['_useragent']
+        current_user_agent = instance.__dict__['_useragent']
+        mocked_useragent = instance._current_response.request.headers.get('User-Agent')
+        return current_user_agent or mocked_useragent
 
     def __set__(self, instance, value):
         """Sets useragent. Useragent set in that way is used for all crawler requests

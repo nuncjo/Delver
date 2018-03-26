@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 
+import asyncio
 import os
 import shutil
 import unittest
@@ -342,6 +343,18 @@ class TestRequestsHtmlFeatures(TestBase):
         result = c.search('Python is a {programming} language')['programming']
         self.assertEqual('programming', result)
 
+    def test_crawler_default_useragent(self):
+        c = Crawler()
+        json_response = c.open(self.urls['USER_AGENT']).json()
+        self.assertEqual(c.useragent, json_response['user-agent'])
+
+    def test_crawler_useragent_set_render(self):
+        c = Crawler()
+        c.useragent = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+        json_response = c.open(self.urls['USER_AGENT']).json()
+        c.render()
+        self.assertEqual(c.useragent, json_response['user-agent'])
+
     def test_request_html_js_always_render(self):
         c = Crawler(always_render=True)
         c._session.mount('file://', FileAdapter())
@@ -353,7 +366,7 @@ class TestRequestsHtmlFeatures(TestBase):
         c = Crawler()
         first_page = c.open(self.urls['SCRAPING_QUOTES'])
         self.assertEqual(first_page.url, 'http://quotes.toscrape.com/')
-        second_page = c.next(fetch=True)
+        second_page = c.next_page(fetch=True)
         self.assertEqual(second_page.url, 'http://quotes.toscrape.com/page/2/')
 
     def test_pyquery_selectors(self):
@@ -362,12 +375,25 @@ class TestRequestsHtmlFeatures(TestBase):
         results = c.pq('div .quote a.tag')
         self.assertEqual(results[0].attrib.get('href'), '/tag/change/page/1/')
 
-    def _html_js_always_render_one_instance(self):
-        """FIXME: submitted issue https://github.com/kennethreitz/requests-html/issues/142
-        c = Crawler(always_render=True)
-        c.open('http://python-requests.org/')
-        c.open('http://python-requests.org/')
-        """
+    def test_take_screenshot(self):
+        c = Crawler()
+        c.open(self.urls['SCRAPING_QUOTES'])
+        c.render(keep_page=True)
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(c.html.page.screenshot({'path': 'example.png'}))
+
+    def test_take_screenshot_with_rendered(self):
+        # TODO: click()
+        async def _take_screenshots(page):
+            await page.screenshot({'path': f'{self.test_dir}/screen1.png'})
+            await page.goto(self.urls['COMPLEX_HTML'])
+            await page.screenshot({'path': f'{self.test_dir}/screen2.png'})
+
+        c = Crawler()
+        c.open(self.urls['SCRAPING_QUOTES'])
+        with c.rendered() as page:
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(_take_screenshots(page))
 
 
 if __name__ == '__main__':
