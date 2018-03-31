@@ -104,6 +104,7 @@ class TestNormal(TestBase):
         self.assertEqual(response.status_code, 200)
         forms = c.forms()
         form = forms[0]
+        self.assertIn('medium', form.fields.size.value_options)
         form.fields = {
             'custname': 'aaa',
             'delivery': '',
@@ -113,6 +114,10 @@ class TestNormal(TestBase):
             'topping': ['bacon', 'cheese'],
             'custtel': '+48606505888'
         }
+        form.update({
+            'custname': 'updated name'
+        })
+        self.assertEqual('updated name', form.fields.custname.value)
         c.submit(form, data={'extra_value': "I am your father."})
         success = c.submit_check(
             form,

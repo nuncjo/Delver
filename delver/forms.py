@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import io
-
 from urllib.parse import urljoin, urlparse
 
 from lxml.html import (
@@ -12,6 +11,12 @@ from lxml.html import (
 )
 
 PARENT_METHODS = ['form_values', 'action', 'method']
+
+
+class Field(dict):
+
+    def __getattr__(self, item):
+        return self.__getitem__(item)
 
 
 def prepare_field(field):
@@ -34,7 +39,13 @@ def prepare_field(field):
         })
     elif isinstance(field, RadioGroup):
         data['value_options'] = field.value_options
-    return data
+    return Field(**data)
+
+
+class FieldsDict(dict):
+
+    def __getattr__(self, key):
+        return self.__getitem__(key)
 
 
 class FormWrapper:
@@ -59,7 +70,7 @@ class FormWrapper:
         :param url: current base url used to assemble full action url
         """
         self._lxml_form = lxml_form
-        self._fields = {}
+        self._fields = FieldsDict()
         self._files = {}
         self._session = session
         self._result = None
@@ -110,6 +121,14 @@ class FormWrapper:
                 text_values[name] = val
 
         self._lxml_form.fields = text_values
+
+    def update(self, values):
+        """Updates fields values.
+
+        :param values: dict with values to update
+        :return:
+        """
+        self._lxml_form.fields.update(values)
 
     def id(self):
         """Returns form id attribute
