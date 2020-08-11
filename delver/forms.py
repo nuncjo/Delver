@@ -131,20 +131,14 @@ class FormWrapper:
         :return: str
         """
         action_url = self.action
-        return urljoin(
-            self._url if urlparse(action_url).scheme else '',
-            self.action
-        )
+        return urljoin(self._url if urlparse(action_url).scheme else '', action_url)
 
     def has_fields(self, fields):
         """Return ``True`` if all fields are present
 
         :return: bool
         """
-        for field in fields:
-            if field not in dict(self._lxml_form.inputs):
-                return False
-        return True
+        return all(field in dict(self._lxml_form.inputs) for field in fields)
 
     def __getattr__(self, item):
         """Wraps some chosen methods (PARENT_METHODS) from ``lxml.html.FormElement``
