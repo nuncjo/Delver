@@ -109,7 +109,7 @@ def table_to_dict(table):
                     headers.append(row_child.text_content())
             elif row_child.tag == 'td':
                 if headers[subindex] in colspans:
-                    if not headers[subindex] in table_dict[index]:
+                    if headers[subindex] not in table_dict[index]:
                         table_dict[index][headers[subindex]] = [row_child.text_content()]
                     else:
                         table_dict[index][headers[subindex]].append(row_child.text_content())
